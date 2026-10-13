@@ -1,0 +1,31 @@
+[package]
+name = "earn-today"
+version = "0.1.0"
+description = "今天又赚了多少 - 可爱蓝发女孩桌面工资小组件"
+authors = ["you"]
+edition = "2021"
+
+[lib]
+name = "earn_today_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[features]
+# Release EXEs must embed the frontend instead of connecting to the Vite dev server.
+# `tauri dev` disables default features to keep hot reload available.
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon", "image-png"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+dirs = "6"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true

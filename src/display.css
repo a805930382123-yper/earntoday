@@ -1,0 +1,57 @@
+/* V1.1 only: preserve the complete card's existing information geometry. */
+.display-controls { position: absolute; left: 20px; top: 16px; display: flex; gap: 8px; z-index: 8; }
+.display-controls .icon-btn { width: 32px; height: 32px; color: var(--pet-muted); border-color: var(--skin-button-border,#c7dfff); box-shadow: var(--skin-icon-shadow,0 2px 5px #689ce830,inset 0 0 0 2px #fff); }
+.display-controls .icon-btn:disabled { opacity: .65; cursor: wait; }
+.privacy-caption { display: inline-flex; align-items: center; gap: 3px; font-size: 13px; font-weight: 600; color: var(--pet-muted); white-space: nowrap; }
+.privacy-lock { flex-shrink: 0; }
+.privacy-control[aria-pressed="true"] { background: var(--porcelain-deep); color: var(--blue-deep); }
+.masked-amount { animation: none !important; transition: none !important; }
+.privacy-mask { font-size: 48px; letter-spacing: 3px; vertical-align: 3px; }
+.display-error { position: absolute; top: 0; left: 12px; right: 12px; padding: 3px 6px; border-radius: 8px; z-index: 10; background: var(--porcelain); color: var(--ink); font-size: 18px; line-height: 22px; text-align: center; pointer-events: none; }
+.display-loading { margin: 8px; padding: 10px; text-align: center; font-size: 11px; line-height: 17px; }
+.display-loading > span { display: block; font-size: 22px; font-weight: 800; color: var(--blue-deep); }
+.display-retry { padding: 3px 7px; margin: 5px 2px 0; border: 1px solid var(--blue-light); border-radius: 7px; background: #fff; color: var(--ink); font: inherit; cursor: pointer; }
+
+.mini-stage { position: relative; width: 260px; height: 108px; }
+.mini-stage .mini-card { position: absolute; left: 6px; top: 8px; width: 248px; height: 95px; border-radius: 20px; z-index: 1; }
+.theme-root .mini-card { background: radial-gradient(ellipse at 6% 100%,var(--blue-light),transparent 47%),linear-gradient(135deg,#fff,var(--porcelain) 60%,var(--porcelain-deep)); border-color: var(--skin-card-border,#a9cfff); box-shadow: 0 3px 5px color-mix(in srgb,var(--ink) 16%,transparent),inset 0 1px #fff,inset 0 -2px 3px #ffffffa6; }
+.theme-root[data-theme-id="mibao"] .mini-card { background: radial-gradient(ellipse at 8% 100%,#e8edca,transparent 48%),linear-gradient(135deg,#fffdf7,#fff9ee 60%,#f7e9d4); }
+.mini-pet { position: absolute; left: 5px; top: 0; width: 110px; height: 104px; overflow: hidden; border-radius: 17px; pointer-events: none; z-index: 3; }
+.mini-pet .chibi-girl { width: var(--mini-pet-width,164px) !important; left: var(--mini-pet-left,-37px); top: var(--mini-pet-top,10px); }
+.mini-pet::after { content: ""; position: absolute; bottom: 4px; left: 10px; right: 6px; height: 5px; z-index: -1; background: var(--skin-contact-shadow,radial-gradient(ellipse,#5578ad30,transparent 70%)); filter: blur(1px); }
+.mini-pet .chibi-base { mask-image: none; }
+.mini-pet .sleep-symbols { left: 73%; top: 20%; font-size: 12px; gap: 3px; }
+.mini-pet .sleep-symbols span:nth-child(2) { font-size: 11px; transform: translateY(-5px); }
+.mini-pet .sleep-symbols span:nth-child(3) { font-size: 14px; transform: translateY(-10px); }
+.mini-information { position: absolute; left: 120px; top: 35px; width: 128px; z-index: 3; pointer-events: none; }
+.mini-title { font-size: 11px; font-weight: 600; line-height: 15px; color: var(--mini-ink,var(--ink)); }
+.mini-amount { font-size: 26px; line-height: 32px; font-weight: 800; color: var(--mini-amount,var(--pet-blue)); font-variant-numeric: tabular-nums; letter-spacing: -.7px; white-space: nowrap; }
+.mini-currency { font-size: .72em; letter-spacing: 0; }
+.mini-amount-compact { font-size: 19px; letter-spacing: -.6px; }
+.mini-amount-long { font-size: 14px; letter-spacing: -.5px; }
+.mini-amount.masked-amount { font-size: 24px; letter-spacing: .8px; color: var(--mini-ink,var(--ink)); }
+.mini-stage.state-lunch .mini-amount:not(.masked-amount) { color: var(--mini-amount-lunch,var(--ink-soft)); }
+.mini-stage.state-after .mini-amount:not(.masked-amount) { color: var(--mini-amount-finished,var(--blue-deep)); }
+.theme-root[data-theme-id="mibao"] .mini-amount:not(.masked-amount) { color: var(--pet-blue); }
+.mini-status { display: flex; align-items: center; gap: 5px; min-height: 16px; font-size: 9px; line-height: 16px; color: var(--mini-status,var(--skin-status-text,#234c83)); white-space: nowrap; }
+.mini-work-status { display: inline-flex; align-items: center; gap: 4px; }
+.mini-status .status-dot { width: 7px; height: 7px; flex-shrink: 0; box-shadow: inset 0 0 0 1px #0000000a; }
+.mini-status .status-working { background: #68bc62; }
+.theme-root[data-theme-id="mibao"] .mini-status .status-working { background: #95bc51; }
+.mini-status .status-lunch { background: #f5bc4c; }
+.mini-status .status-after { background: #ac91ef; }
+.mini-stage.state-after:not(.privacy-hidden) .mini-work-status { border-radius: 9px; padding: 0 5px; background: #eeebff; color: #5b53a2; }
+.mini-status .privacy-caption { gap: 2px; padding: 0 3px; border-radius: 8px; background: #ffffffb8; font-size: 8px; color: var(--mini-ink,var(--ink)); }
+.mini-status .privacy-lock { width: 10px; height: 10px; }
+.mini-stage.privacy-hidden .mini-work-status { font-size: 8px; gap: 3px; }
+.mini-stage.privacy-hidden .status-dot { width: 5px; height: 5px; }
+.mini-controls { left: auto; top: 12px; right: 12px; gap: 3px; z-index: 5; }
+.mini-controls .icon-btn { width: 20px; height: 20px; box-shadow: 0 1px 2px color-mix(in srgb,var(--blue-deep) 12%,transparent); }
+.mini-controls .icon-btn svg { width: 12px; height: 12px; }
+.mini-theme-detail { position: absolute; inset: 0; pointer-events: none; opacity: .26; }
+.mini-theme-detail img { position: absolute; top: 32px; right: 7px; width: 13px; height: 13px; transform: rotate(15deg); }
+.mini-theme-detail i { position: absolute; right: 7px; bottom: 6px; width: 9px; height: 9px; border: 1.5px solid var(--blue-light); border-radius: 50%; }
+.mini-theme-detail i:nth-child(2) { right: 22px; bottom: 10px; width: 4px; height: 4px; }
+.mini-theme-detail i:nth-child(3) { right: 8px; bottom: 58px; width: 5px; height: 5px; }
+.mini-error { font-size: 9px; line-height: 12px; left: 4px; right: 4px; top: 0; }
+@media (prefers-reduced-motion: reduce) { .display-controls .icon-btn { transition: none; } }

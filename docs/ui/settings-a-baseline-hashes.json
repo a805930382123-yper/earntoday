@@ -1,0 +1,26 @@
+[
+  {
+    "Path": "D:\\LJW\\plugins\\earn money\\src\\widget.css",
+    "Hash": "250396D85491429D003E0B6A24EB17CA26BE4CA0B54E1B25416B4B0ACEF9C33C"
+  },
+  {
+    "Path": "D:\\LJW\\plugins\\earn money\\src\\components\\Widget.tsx",
+    "Hash": "3606E81E26E046BBEEF82C6A572D607E2E89460355C69E0F2E48501ABD6FE404"
+  },
+  {
+    "Path": "D:\\LJW\\plugins\\earn money\\src\\components\\ChibiGirl.tsx",
+    "Hash": "809AD81B996A4B94DB6C61FEC8E61C16BC23C7AE3739CD58F6E55D3F76275A71"
+  },
+  {
+    "Path": "D:\\LJW\\plugins\\earn money\\src\\salary\\calc.ts",
+    "Hash": "4505A9A232FA9BDF47C9AEDF0CAADCADA18A666A18EC0F066841DF469A375E90"
+  },
+  {
+    "Path": "D:\\LJW\\plugins\\earn money\\src-tauri\\src\\lib.rs",
+    "Hash": "82961E3E204FCF9EE385BEA89E16FC454F67B9FA8393DCFCFF9F23170D41F59A"
+  },
+  {
+    "Path": "D:\\LJW\\plugins\\earn money\\src-tauri\\src\\config.rs",
+    "Hash": "9059D25DE61388E3182ED38EC9606D0EB37CFB58AA657E89CEDA4B7B14BA468E"
+  }
+]

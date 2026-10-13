@@ -1,0 +1,29 @@
+/* Only the existing character layer responds. Card and salary geometry stay fixed. */
+.pet-hit-area { position: absolute; inset: 0; z-index: 2; pointer-events: auto; appearance: none; border: 0; padding: 0; background: transparent; cursor: pointer; touch-action: none; border-radius: 20px; }
+.girl-wrap .pet-hit-area { left: 20%; width: 68%; height: 100%; }
+.pet-hit-area:focus-visible { outline: 2px solid var(--skin-focus-color,var(--blue)); outline-offset: -3px; }
+.pet-interactive .chibi-base { transition: none; }
+.chibi-girl.pet-has-reaction .chibi-base { opacity: 0; }
+.chibi-reaction { position: absolute; display: block; height: auto; max-width: none; pointer-events: none; }
+.pet-reacting .sleep-symbols { opacity: 0; }
+.pet-reacting .chibi-poses { transform-origin: center bottom; animation: pet-answer-work 420ms ease-out both; }
+.pet-reacting.motion-playful .chibi-poses { animation-name: pet-answer-playful; }
+.pet-reacting.reaction-lunch .chibi-poses { animation: pet-answer-sleep 400ms ease-in-out both; }
+.pet-reacting.reaction-finished .chibi-poses { animation: pet-answer-finished 420ms ease-out both; }
+.pet-bubble { position: absolute; top: 4px; left: 24px; z-index: 9; max-width: 460px; padding: 4px 10px; border: 1px solid var(--skin-button-border,var(--blue-light)); border-radius: 14px 14px 14px 3px; background: var(--porcelain); color: var(--ink); box-shadow: 0 3px 8px color-mix(in srgb,var(--ink) 12%,transparent); font-size: 18px; font-weight: 600; line-height: 24px; pointer-events: none; animation: pet-bubble-appear 140ms ease-out both; }
+.pet-mini-bubble { position: relative; inset: auto; z-index: auto; flex-shrink: 0; max-width: 128px; padding: 0 4px; border-radius: 7px 7px 7px 2px; font-size: 9px; line-height: 14px; box-shadow: none; }
+.mini-stage.privacy-hidden .pet-mini-bubble { font-size: 8px; padding: 0 3px; }
+.mini-stage .pet-reacting .chibi-poses { animation-name: pet-answer-mini; }
+.mini-stage .pet-reacting.reaction-lunch .chibi-poses { animation-name: pet-answer-sleep-mini; }
+.mini-stage .pet-reacting.reaction-finished .chibi-poses { animation-name: pet-answer-finished-mini; }
+@keyframes pet-answer-work { 0%,100% { transform: translateY(0); } 35% { transform: translateY(-6px); } }
+@keyframes pet-answer-playful { 0%,100% { transform: translateY(0) rotate(0); } 35% { transform: translateY(-8px) rotate(-1deg); } 65% { transform: translateY(-3px) rotate(.6deg); } }
+@keyframes pet-answer-sleep { 0%,100% { transform: rotate(0); } 40% { transform: rotate(-.6deg); } 70% { transform: rotate(.4deg); } }
+@keyframes pet-answer-finished { 0%,100% { transform: translateY(0) scale(1); } 35% { transform: translateY(-6px) scale(1.02); } }
+@keyframes pet-answer-mini { 0%,100% { transform: translateY(0); } 35% { transform: translateY(-2px); } }
+@keyframes pet-answer-sleep-mini { 0%,100% { transform: rotate(0); } 40% { transform: rotate(-.3deg); } 70% { transform: rotate(.2deg); } }
+@keyframes pet-answer-finished-mini { 0%,100% { transform: translateY(0) scale(1); } 35% { transform: translateY(-2px) scale(1.01); } }
+@keyframes pet-bubble-appear { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .pet-reacting .chibi-poses, .pet-bubble { animation: none !important; }
+}
