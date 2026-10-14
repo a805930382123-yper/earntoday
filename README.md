@@ -2,6 +2,16 @@
 
 一款 Windows 桌面陪伴小组件：蓝发女孩或狸花猫「咪宝」趴在工资卡片上，陪你上班并实时显示今天已经赚到的钱。
 
+## 下载与安装（Windows 64 位）
+
+**[下载最新版 Windows 安装包](https://github.com/a805930382123-yper/earntoday/releases/latest)**
+
+在发布页面下载 `EarnToday_版本号_x64-setup.exe`，双击并按提示安装，然后从开始菜单打开「今天又赚了多少」。无需安装 Node.js、Rust 或开发工具，也不需要保留项目文件夹。
+
+安装器会检查 Microsoft Edge WebView2；如果电脑尚未安装该运行环境，需要联网下载。已有 WebView2 的电脑可直接安装，程序启动后无需开发服务器。
+
+GitHub 的「Code → Download ZIP」下载的是源码，适合开发使用。源码中的 `EarnToday.exe` 是本地开发启动器，必须先完成下文的构建步骤才能使用。
+
 ## 功能
 
 - 无边框、透明、置顶、可拖动的桌面悬浮窗
@@ -27,7 +37,7 @@ npm run tauri dev  # 启动完整桌面应用
 npm test           # 核心工资计算测试（node:test，无需额外依赖）
 ```
 
-## 双击启动
+## 源码构建与本地双击启动
 
 日常使用项目根目录下的 `EarnToday.exe`：
 
@@ -50,6 +60,8 @@ npm run tauri build
 ```
 
 产物位于 `src-tauri/target/release/bundle/nsis/`。
+
+仓库的 `.github/workflows/release.yml` 会构建、验证 Windows 安装包并发布到 GitHub Releases。发布新版本前，同步修改 `package.json`、`src-tauri/Cargo.toml`、`src-tauri/tauri.conf.json` 的版本号和锁文件，再推送对应的 `v版本号` 标签；也可以从 Actions 页面手动运行发布流程。
 
 环境要求：Node.js ≥ 22.6、Rust（MSVC）、Visual Studio Build Tools（C++ 工作负载）、WebView2。
 

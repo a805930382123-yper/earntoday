@@ -1,0 +1,82 @@
+name: Windows installer release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+    paths: ['.github/workflows/release.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: windows-release
+  cancel-in-progress: false
+
+jobs:
+  windows:
+    runs-on: windows-2022
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies and verify salary calculations
+        run: |
+          npm ci
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm test
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify native configuration and window calculations
+        run: |
+          cargo test --locked --lib --manifest-path src-tauri/Cargo.toml
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Build Windows installer
+        run: |
+          npm run tauri -- build --bundles nsis --ci -- --locked
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify installation and embedded app
+        run: |
+          $installer = @(Get-ChildItem src-tauri/target/release/bundle/nsis/*-setup.exe)
+          if ($installer.Count -ne 1) { throw 'Expected exactly one Windows installer' }
+          $installDir = Join-Path $env:RUNNER_TEMP 'earntoday-install-smoke'
+          $process = Start-Process -FilePath $installer[0].FullName -ArgumentList @('/S', "/D=$installDir") -WindowStyle Hidden -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Installer exited with $($process.ExitCode)" }
+          node tools/verify-installer.mjs "$installDir/earn-today.exe" src-tauri/target/release/earn-today.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Prepare download and checksum
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $tag = "v$version"
+          if ($env:GITHUB_REF_TYPE -eq 'tag' -and $env:GITHUB_REF_NAME -ne $tag) { throw 'Tag and project version do not match' }
+          $asset = "EarnToday_${version}_x64-setup.exe"
+          New-Item -ItemType Directory -Path release-assets -Force | Out-Null
+          Copy-Item (Get-ChildItem src-tauri/target/release/bundle/nsis/*-setup.exe).FullName "release-assets/$asset"
+          $hash = (Get-FileHash "release-assets/$asset" -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $asset" | Set-Content "release-assets/$asset.sha256" -Encoding utf8NoBOM
+          "RELEASE_TAG=$tag" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+          "RELEASE_ASSET=$asset" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+          @"
+          Windows 64 位安装版，下载 $asset 后双击安装，从开始菜单打开「今天又赚了多少」。无需 Node.js、Rust、开发服务器或项目源码。
+
+          包含蓝色大肥鱼 / 咪宝主题、工资实时计算、迷你模式、隐私隐藏及桌宠互动。
+
+          如果电脑尚未安装 Microsoft Edge WebView2，首次安装需要联网下载该运行环境。
+
+          安装包 SHA-256：$hash
+          "@ | Set-Content release-notes.md -Encoding utf8NoBOM
+      - name: Publish verified installer
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release view $env:RELEASE_TAG *> $null
+          if ($LASTEXITCODE -eq 0) { throw 'This version is already published; bump the version before publishing again' }
+          gh release create $env:RELEASE_TAG "release-assets/$env:RELEASE_ASSET" "release-assets/$env:RELEASE_ASSET.sha256" --target $env:GITHUB_SHA --title "今天又赚了多少 $env:RELEASE_TAG" --notes-file release-notes.md --latest
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
