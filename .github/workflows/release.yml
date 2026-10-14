@@ -35,6 +35,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Verify native configuration and window calculations
         run: |
+          npm run build
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cargo test --locked --lib --manifest-path src-tauri/Cargo.toml
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Build Windows installer
