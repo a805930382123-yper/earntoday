@@ -4,6 +4,7 @@ const path = require('node:path');
 const { spawn } = require('node:child_process');
 const { chromium } = require(path.join(process.argv[2], 'playwright'));
 const pet = require('./pet-desktop-checks.cjs');
+const testPointer = !process.argv.includes('--skip-physical-pointer');
 const freePort = () => new Promise((resolve, reject) => {
   const server = require('node:net').createServer(); server.on('error', reject);
   server.listen(0, '127.0.0.1', () => { const port = server.address().port; server.close(() => resolve(port)); });
@@ -50,6 +51,19 @@ async function main() {
     await page.waitForSelector(hidden ? '[data-window-mode].privacy-hidden' : '[data-window-mode]:not(.privacy-hidden)');
   };
   const amount = () => page.locator('.amount,.mini-amount');
+  const assertPrivacyPose = async state => {
+    if (state === 'working') {
+      await page.waitForSelector('.pet-has-privacy-art');
+      await page.waitForFunction(() => getComputedStyle(document.querySelector('.privacy-question')).visibility === 'visible');
+      assert.equal(await page.locator('.chibi-privacy').evaluate(el => getComputedStyle(el).opacity), '1');
+    } else {
+      assert.equal(await page.locator('.privacy-question,.privacy-confused,.pet-has-privacy-art').count(), 0);
+      assert.equal(await page.locator('.chibi-privacy').evaluate(el => getComputedStyle(el).opacity), '0');
+      const selector = state === 'lunch' ? '.chibi-sleeping' : state === 'after' ? '.chibi-after-work' : '.chibi-awake';
+      assert.equal(await page.locator(selector).evaluate(el => getComputedStyle(el).opacity), '1');
+    }
+    assert.equal(await money(), '¥••••••');
+  };
   const money = async () => (await amount().textContent()).replace(/[,\s]/g, '');
   const choose = async id => {
     await page.getByRole('button', { name: '打开设置' }).click();
@@ -90,29 +104,35 @@ async function main() {
         await pet.reaction(page, id, state, 'full', false);
         await setPrivate(true);
         assert.equal(await money(), '¥••••••');
+        await assertPrivacyPose(state);
+        await page.screenshot({ path: pet.screenshotPath(`privacy-question-${id}-full-${state}-desktop.png`), omitBackground: true, animations: 'disabled' });
         await pet.reaction(page, id, state, 'full', true);
-        if (state === 'working' && id === 'blue-whale-girl') await page.screenshot({ path: 'docs/ui/full-privacy-desktop.png', omitBackground: true, animations: 'disabled' });
+        await assertPrivacyPose(state);
+        if (state === 'working' && id === 'blue-whale-girl') await page.screenshot({ path: pet.screenshotPath('full-privacy-desktop.png'), omitBackground: true, animations: 'disabled' });
         await setMode('mini');
         assert.equal(await money(), '¥••••••');
+        await assertPrivacyPose(state);
+        await page.screenshot({ path: pet.screenshotPath(`privacy-question-${id}-mini-${state}-desktop.png`), omitBackground: true, animations: 'disabled' });
         await pet.reaction(page, id, state, 'mini', true);
+        await assertPrivacyPose(state);
         assert.equal(await page.locator('.progress-times,.after-work-note').count(), 0);
         await page.waitForFunction(() => [...document.images].every(img => img.complete && img.naturalWidth > 0));
         const pose = state === 'lunch' ? '.chibi-sleeping' : state === 'after' ? '.chibi-after-work' : '.chibi-awake';
-        await page.waitForFunction(selector => getComputedStyle(document.querySelector(selector)).opacity === '1', pose);
-        if (state === 'lunch' && id === 'mibao') await page.screenshot({ path: 'docs/ui/mini-privacy-desktop.png', omitBackground: true, animations: 'disabled' });
-        if (state === 'working' && id === 'blue-whale-girl') await page.screenshot({ path: 'docs/ui/mini-blue-private-desktop.png', omitBackground: true, animations: 'disabled' });
+        await page.waitForFunction(({ selector, state }) => getComputedStyle(document.querySelector(selector)).opacity === (state === 'working' ? '0' : '1'), { selector: pose, state });
+        if (state === 'lunch' && id === 'mibao') await page.screenshot({ path: pet.screenshotPath('mini-privacy-desktop.png'), omitBackground: true, animations: 'disabled' });
+        if (state === 'working' && id === 'blue-whale-girl') await page.screenshot({ path: pet.screenshotPath('mini-blue-private-desktop.png'), omitBackground: true, animations: 'disabled' });
         await setPrivate(false); assert.equal(await money(), income);
         await pet.reaction(page, id, state, 'mini', false);
-        if (state === 'working' && id === 'mibao') await pet.pointer(page, invoke, app.pid);
-        await page.screenshot({ path: `docs/ui/mini-${id}-${state}-desktop.png`, omitBackground: true, animations: 'disabled' });
-        if (state === 'working') await page.screenshot({ path: `docs/ui/mini-${id}-desktop.png`, omitBackground: true, animations: 'disabled' });
+        if (testPointer && state === 'working' && id === 'mibao') { await setPrivate(true); await pet.pointer(page, invoke, app.pid); await setPrivate(false); }
+        await page.screenshot({ path: pet.screenshotPath(`mini-${id}-${state}-desktop.png`), omitBackground: true, animations: 'disabled' });
+        if (state === 'working') await page.screenshot({ path: pet.screenshotPath(`mini-${id}-desktop.png`), omitBackground: true, animations: 'disabled' });
         if (state === 'after') {
           assert.match(await page.locator('.mini-work-status').textContent(), /^已下班/);
           assert.equal(income, `¥${(original.settings.monthlySalary / original.settings.workdaysPerMonth).toFixed(2)}`);
         }
         assert.equal(await invoke('plugin:window|is_always_on_top', { label: 'main' }), true);
         await setMode('full');
-        if (state === 'working' && id === 'mibao') await pet.pointer(page, invoke, app.pid);
+        if (testPointer && state === 'working' && id === 'mibao') { await setPrivate(true); await pet.pointer(page, invoke, app.pid); await setPrivate(false); }
         assert.equal(await money(), income);
         assert.deepEqual(await invoke('plugin:window|outer_position', { label: 'main' }), anchor, 'Mode restore retains full-window anchor');
       }
@@ -156,6 +176,7 @@ async function main() {
     await page.waitForSelector('[data-theme-id="mibao"]');
     assert.deepEqual(await nativeSize(), { width: 260, height: 108 });
     assert.equal(await money(), '¥••••••');
+    await assertPrivacyPose(await page.locator('[data-work-state]').getAttribute('data-work-state'));
     const restored = await load();
     assert.equal(restored.privacyMode, 'hidden'); assert.equal(restored.windowMode, 'mini');
     assert.deepEqual(restored.settings, original.settings);
@@ -169,7 +190,7 @@ async function main() {
     await page.reload(); await page.waitForSelector('.mini-stage.privacy-hidden');
     assert.deepEqual(await page.evaluate(() => window.__unmaskedFrames), []);
     assert.equal(browser.contexts()[0].pages().length, 1);
-    console.log('PASS Windows V1.2: both skins/three reactions/full+mini/visible+private; decoded art/auto restore; real physical click+jitter/drag in both modes with position persistence and no false reactions; V1.1 resize/anchor/privacy/theme/settings/restart checks.');
+    console.log(`PASS Windows privacy: both skins/full+mini working confused art/question; lunch/after original art without question and still masked; screenshots; existing reactions; ${testPointer ? 'private real click+jitter/drag in both modes' : 'physical pointer explicitly excluded'}; position persistence; resize/anchor/privacy/theme/settings/restart compatibility.`);
   } finally {
     if (browser && page && original) {
       try {

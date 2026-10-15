@@ -16,7 +16,8 @@
 .mini-stage .mini-card { position: absolute; left: 6px; top: 8px; width: 248px; height: 95px; border-radius: 20px; z-index: 1; }
 .theme-root .mini-card { background: radial-gradient(ellipse at 6% 100%,var(--blue-light),transparent 47%),linear-gradient(135deg,#fff,var(--porcelain) 60%,var(--porcelain-deep)); border-color: var(--skin-card-border,#a9cfff); box-shadow: 0 3px 5px color-mix(in srgb,var(--ink) 16%,transparent),inset 0 1px #fff,inset 0 -2px 3px #ffffffa6; }
 .theme-root[data-theme-id="mibao"] .mini-card { background: radial-gradient(ellipse at 8% 100%,#e8edca,transparent 48%),linear-gradient(135deg,#fffdf7,#fff9ee 60%,#f7e9d4); }
-.mini-pet { position: absolute; left: 5px; top: 0; width: 110px; height: 104px; overflow: hidden; border-radius: 17px; pointer-events: none; z-index: 3; }
+.mini-pet { position: absolute; left: 5px; top: 0; width: 110px; height: 104px; border-radius: 17px; pointer-events: none; z-index: 3; }
+.mini-pet-clip { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; }
 .mini-pet .chibi-girl { width: var(--mini-pet-width,164px) !important; left: var(--mini-pet-left,-37px); top: var(--mini-pet-top,10px); }
 .mini-pet::after { content: ""; position: absolute; bottom: 4px; left: 10px; right: 6px; height: 5px; z-index: -1; background: var(--skin-contact-shadow,radial-gradient(ellipse,#5578ad30,transparent 70%)); filter: blur(1px); }
 .mini-pet .chibi-base { mask-image: none; }

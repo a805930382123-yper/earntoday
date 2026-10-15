@@ -9,6 +9,7 @@ import {
   formatDuration,
   hourlySalary,
   minutesUntilOffWork,
+  normalizeWorkWeekdays,
   parseMinutes,
   validateSettings,
   workProgress,
@@ -59,8 +60,68 @@ describe("工作状态判断", () => {
   test("周末判断", () => {
     const sat = new Date(2024, 9, 12, 10, 0, 0); // 周六
     const sun = new Date(2024, 9, 13, 10, 0, 0); // 周日
-    assert.equal(workState(sat, settings), "weekend");
-    assert.equal(workState(sun, settings), "weekend");
+    assert.equal(workState(sat, settings), "rest_day");
+    assert.equal(workState(sun, settings), "rest_day");
+  });
+});
+
+describe("自定义工作日", () => {
+  const sample = { ...DEFAULT_SETTINGS, monthlySalary: 12000, workdaysPerMonth: 22 };
+  test("七天所有非空组合都以本地星期优先判断，工资分母始终为22", () => {
+    for (let mask = 1; mask < 128; mask++) {
+      const workWeekdays = Array.from({ length: 7 }, (_, day) => day).filter(day => mask & (1 << day));
+      const s = { ...sample, workWeekdays };
+      assert.equal(validateSettings(s), null);
+      assert.equal(dailySalary(s), 12000 / 22);
+      assert.equal(hourlySalary(s), (12000 / 22) / 8);
+      for (let day = 0; day < 7; day++) for (const [hour, minute, expected] of [[8, 0, "before"], [10, 0, "working"], [12, 30, "lunch"], [14, 0, "working"], [20, 0, "after"]] as const) {
+        const now = new Date(2024, 9, 13 + day, hour, minute); // Sunday through Saturday
+        assert.equal(now.getDay(), day);
+        assert.equal(workState(now, s), workWeekdays.includes(day) ? expected : "rest_day");
+        if (!workWeekdays.includes(day)) {
+          assert.equal(earnedAmount(now, s), 0);
+          assert.equal(effectiveWorkedMinutes(now, s), 0);
+          assert.equal(workProgress(now, s), 0);
+          assert.equal(minutesUntilOffWork(now, s), 0);
+        }
+      }
+    }
+  });
+  test("仅周日上班和全周上班正常累计，午休暂停、下班封顶", () => {
+    for (const workWeekdays of [[0], [0, 1, 2, 3, 4, 5, 6]]) {
+      const s = { ...sample, workWeekdays };
+      assert.equal(earnedAmount(new Date(2024, 9, 13, 10), s), hourlySalary(s));
+      assert.equal(earnedAmount(new Date(2024, 9, 13, 12), s), earnedAmount(new Date(2024, 9, 13, 12, 59), s));
+      assert.equal(earnedAmount(new Date(2024, 9, 13, 23), s), dailySalary(s));
+    }
+  });
+  test("增加或移除当天后从实际时间重新计算，不从零累计", () => {
+    const saturday = new Date(2024, 9, 19, 14);
+    const six = { ...sample, workWeekdays: [1, 2, 3, 4, 5, 6] };
+    assert.equal(workState(saturday, sample), "rest_day");
+    assert.equal(workState(saturday, six), "working");
+    assert.equal(earnedAmount(saturday, six), dailySalary(six) / 2);
+    assert.equal(earnedAmount(saturday, sample), 0);
+  });
+  test("午夜、唤醒大幅时间跳变按新本地日期判断", () => {
+    assert.equal(workState(new Date(2024, 9, 18, 23, 59, 59), sample), "after");
+    assert.equal(workState(new Date(2024, 9, 19, 0), sample), "rest_day");
+    assert.equal(workState(new Date(2024, 9, 20, 23, 59), sample), "rest_day");
+    assert.equal(workState(new Date(2024, 9, 21, 0), sample), "before");
+    assert.equal(workState(new Date(2024, 9, 21, 14), sample), "working");
+  });
+  test("使用本地 getDay 而非 UTC 星期", () => {
+    const localSunday = new Date(2024, 9, 13, 0, 30);
+    const s = { ...sample, workStart: "00:00", lunchStart: "04:00", lunchEnd: "05:00", workEnd: "08:00", workWeekdays: [0] };
+    assert.equal(workState(localSunday, s), "working");
+    assert.ok(earnedAmount(localSunday, s) > 0);
+  });
+  test("老用户和损坏星期字段读取回退，空集合保存严格拒绝", () => {
+    for (const bad of [undefined, null, [], [7], [-1], [1.5], [1, 1], ["1"], "1,2"]) {
+      assert.deepEqual(normalizeWorkWeekdays(bad), [1, 2, 3, 4, 5]);
+      assert.ok(validateSettings({ ...sample, workWeekdays: bad as number[] })?.workWeekdays);
+    }
+    assert.deepEqual(normalizeWorkWeekdays([0, 6, 1]), [1, 6, 0]);
   });
 });
 

@@ -3,6 +3,7 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useTheme } from "../themes/ThemeProvider";
 import type { PetInteraction } from "../interaction/types";
 import { ChibiGirl, type GirlMood } from "./ChibiGirl";
+import { PrivacyQuestion } from "./PrivacyQuestion";
 
 type Gesture = { id: number; x: number; y: number; dragging: boolean };
 
@@ -31,9 +32,13 @@ export function InteractivePet({ mood, width, interaction, mini = false, onDragE
     if (!current || current.id !== event.pointerId || current.dragging || event.button !== 0) return;
     if (Math.hypot(event.clientX - current.x, event.clientY - current.y) < 5) interaction.trigger();
   };
-  return <>
+  const pet = <>
     <ChibiGirl mood={mood} width={width} interaction={interaction} mini={mini} />
     {interaction.enabled && <button type="button" className="pet-hit-area" aria-label={`${theme.name}桌宠，点击互动`} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp} onPointerCancel={clearGesture} onLostPointerCapture={clearGesture} onBlur={clearGesture} onClick={event => { if (event.detail === 0) interaction.trigger(); }} />}
+  </>;
+  return <>
+    {mini ? <div className="mini-pet-clip">{pet}</div> : pet}
+    {mood === "working" && <PrivacyQuestion mini={mini} />}
   </>;
 }
 

@@ -1,6 +1,11 @@
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const { spawn } = require('node:child_process');
+const screenshotRoot = path.resolve(process.env.EARN_TODAY_SCREENSHOT_DIR || 'docs/ui');
+const allowedRoot = path.resolve('docs/ui');
+if (screenshotRoot !== allowedRoot && !screenshotRoot.startsWith(allowedRoot + path.sep)) throw new Error('Screenshot directory must stay in docs/ui');
+require('node:fs').mkdirSync(screenshotRoot, { recursive: true });
+const screenshotPath = name => path.join(screenshotRoot, name);
 
 async function reaction(page, id, state, mode, hidden) {
   await page.waitForLoadState('networkidle');
@@ -17,7 +22,7 @@ async function reaction(page, id, state, mode, hidden) {
   assert.equal(await money.textContent(), before);
   assert.deepEqual(await money.boundingBox(), box);
   if (hidden) assert.equal(before.replace(/\s/g, ''), '¥••••••');
-  await page.screenshot({ path: `docs/ui/interaction-${id}-${mode}-${state}${hidden ? '-private' : ''}-desktop.png`, omitBackground: true, animations: 'disabled' });
+  await page.screenshot({ path: screenshotPath(`interaction-${id}-${mode}-${state}${hidden ? '-private' : ''}-desktop.png`), omitBackground: true, animations: 'disabled' });
   await page.clock.runFor(1500);
   assert.equal(await page.locator('.chibi-reaction,.pet-bubble,.pet-reacting').count(), 0);
 }
@@ -46,12 +51,13 @@ async function pointer(page, invoke, pid) {
   assert.deepEqual(await invoke('plugin:window|outer_position', { label: 'main' }), before, 'Real click/jitter cannot move the window');
   await page.clock.runFor(1500);
   await run('drag');
+  await page.waitForTimeout(100);
   const after = await invoke('plugin:window|outer_position', { label: 'main' });
-  assert.notDeepEqual(after, before, 'Real pointer drag moves the native window');
+  assert.notDeepEqual(after, before, `Real pointer drag moves the native window: ${JSON.stringify({ before, after, events: await page.evaluate(() => window.__petPointerEvents) })}`);
   assert.equal(await page.locator('.chibi-reaction,.pet-bubble').count(), 0, 'Real drag cannot trigger a reaction');
   await page.waitForFunction(({ x, y }) => window.__TAURI_INTERNALS__.invoke('load_data').then(data => Math.abs(data.position.x - x) < 1 && Math.abs(data.position.y - y) < 1), { x: after.x / scale, y: after.y / scale });
   await invoke('save_position', { x: before.x / scale, y: before.y / scale });
   await invoke('hide_settings');
   assert.deepEqual(await invoke('plugin:window|outer_position', { label: 'main' }), before);
 }
-module.exports = { reaction, pointer };
+module.exports = { reaction, pointer, screenshotPath };

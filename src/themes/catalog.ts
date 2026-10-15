@@ -1,4 +1,5 @@
 import working from "../assets/chibi-girl-top.png";
+import workingPrivate from "../assets/chibi-girl-working-private.png";
 import lunch from "../assets/chibi-girl-sleeping.png";
 import finished from "../assets/chibi-girl-after-work.png";
 import settings from "../assets/chibi-girl-calculator.png";
@@ -11,6 +12,15 @@ import type { PetReaction, ReactionPose } from "../interaction/types";
 
 export type CharacterState = "working" | "lunch" | "finished" | "settings";
 export type ThemeVariables = Record<`--${string}`, string>;
+export interface PrivacyDecoration {
+  working?: string;
+  color: string;
+  highlight: string;
+  outline: string;
+  tilt: string;
+  full: { left: string; top: string; width: string };
+  mini: { left: string; top: string; width: string };
+}
 export interface SkinTheme {
   id: string;
   name: string;
@@ -18,6 +28,7 @@ export interface SkinTheme {
   cover: string;
   characters: Record<CharacterState, string>;
   reactions?: Partial<Record<ReactionPose, PetReaction>>;
+  privacy?: PrivacyDecoration;
   colors: ThemeVariables;
   decorations: { noteSymbol: string; symbolColor: string; cardAccent?: string };
   stateLabels?: Partial<Record<WorkState, string>>;
@@ -47,6 +58,12 @@ export const DEFAULT_THEME: SkinTheme = {
   },
   decorations: { noteSymbol: "♥", symbolColor: "#efa6b7" },
   characterFilter: "none",
+  privacy: {
+    working: workingPrivate,
+    color: "#4b93f1", highlight: "#8bd4ff", outline: "#245cc5", tilt: "0.65deg",
+    full: { left: "88%", top: "-12px", width: "48px" },
+    mini: { left: "108px", top: "4px", width: "18px" },
+  },
   mini: { width: "200px", top: "9px", offsets: { working: "-59px", lunch: "-59px", finished: "-59px" } },
 };
 

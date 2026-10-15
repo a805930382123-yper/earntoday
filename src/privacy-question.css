@@ -1,0 +1,21 @@
+/* This layer stays outside the image clipping and interaction transforms. */
+.privacy-question { position: absolute; left: var(--question-left); top: var(--question-top); width: var(--question-width); aspect-ratio: 34 / 52; z-index: 3; pointer-events: none; opacity: 0; visibility: hidden; transform: translateY(var(--question-rise,3px)) scale(.92) rotate(9deg); transform-origin: center 85%; filter: drop-shadow(0 1px 1px #ffffffd9); transition: opacity 180ms ease, transform 180ms ease, visibility 0s linear 180ms; }
+.privacy-question svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.privacy-question.is-visible { opacity: 1; visibility: visible; transform: rotate(9deg); transition-delay: 0s; animation: privacy-question-enter 260ms ease-out both; }
+.mini-pet .privacy-question { --question-rise: 0px; }
+.chibi-girl .chibi-privacy { opacity: 0; }
+.chibi-girl.pet-has-privacy-art .chibi-awake { opacity: 0; }
+.chibi-girl.pet-has-privacy-art .chibi-privacy { opacity: 1; }
+.privacy-confused:not(.pet-reacting):not(.pet-has-privacy-art) .chibi-poses { transform: rotate(var(--privacy-tilt)); transform-origin: center bottom; }
+.pet-interactive .chibi-poses { transition: transform 180ms ease; }
+.mini-pet .privacy-confused { --privacy-tilt: .3deg !important; }
+@keyframes privacy-question-enter {
+  0% { opacity: 0; transform: translateY(var(--question-rise,3px)) scale(.84) rotate(4deg); }
+  65% { opacity: 1; transform: scale(1.06) rotate(11deg); }
+  100% { opacity: 1; transform: rotate(9deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .privacy-question, .pet-interactive .chibi-poses { animation: none !important; transition: none !important; }
+  .privacy-question { transform: none; }
+  .privacy-confused:not(.pet-reacting) .chibi-poses { transform: none; }
+}

@@ -100,7 +100,8 @@
 .status-working { background: #56b77e; }
 .status-before { background: #9db6c9; }
 .status-after { background: #ffba57; }
-.status-weekend { background: #a596d4; }
+.status-rest_day { background: var(--pet-muted); }
+.rest-day-summary { margin: auto 0 0; padding: 10px 0 4px; color: var(--pet-muted); font-size: 21px; line-height: 28px; }
 .status-zzz { display: none; color: var(--skin-sleep-symbol, #79acfa); font-size: 15px; font-weight: 800; letter-spacing: 2px; transform: rotate(-12deg); }
 .state-lunch .status-zzz { display: inline; }
 .state-lunch .status-icon { color: var(--skin-icon, #69a0e6); }

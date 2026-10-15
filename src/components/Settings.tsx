@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { invoke } from "../tauri";
 import { useTheme } from "../themes/ThemeProvider";
 import { ThemePicker, PaletteIcon } from "./ThemePicker";
+import { WorkWeekdays } from "./WorkWeekdays";
 import {
   DEFAULT_SETTINGS,
   dailySalary,
   dailyWorkMinutes,
   hourlySalary,
+  normalizeWorkWeekdays,
   validateSettings,
   type SalarySettings,
   type ValidationErrors,
@@ -15,6 +17,7 @@ import {
 interface FormState {
   salary: string;
   days: string;
+  workWeekdays: number[];
   start: string;
   end: string;
   lunchStart: string;
@@ -24,6 +27,7 @@ interface FormState {
 const INITIAL: FormState = {
   salary: String(DEFAULT_SETTINGS.monthlySalary),
   days: String(DEFAULT_SETTINGS.workdaysPerMonth),
+  workWeekdays: [...DEFAULT_SETTINGS.workWeekdays],
   start: DEFAULT_SETTINGS.workStart,
   end: DEFAULT_SETTINGS.workEnd,
   lunchStart: DEFAULT_SETTINGS.lunchStart,
@@ -34,6 +38,7 @@ function toSettings(f: FormState): SalarySettings {
   return {
     monthlySalary: Number(f.salary),
     workdaysPerMonth: Number(f.days),
+    workWeekdays: [...f.workWeekdays],
     workStart: f.start,
     workEnd: f.end,
     lunchStart: f.lunchStart,
@@ -58,6 +63,7 @@ export function Settings() {
           setForm({
             salary: String(s.monthlySalary),
             days: String(s.workdaysPerMonth),
+            workWeekdays: normalizeWorkWeekdays(s.workWeekdays),
             start: s.workStart,
             end: s.workEnd,
             lunchStart: s.lunchStart,
@@ -78,7 +84,7 @@ export function Settings() {
   const dailyHours = valid === null ? dailyWorkMinutes(parsed) / 60 : 0;
   const hourly = valid === null ? hourlySalary(parsed) : 0;
 
-  const set = (key: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) =>
+  const set = (key: Exclude<keyof FormState, "workWeekdays">) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -100,7 +106,7 @@ export function Settings() {
 
   return (
     <div className="settings-shell">
-      <div className="card settings-card">
+      <div className="card settings-card salary-settings-card">
         <button type="button" className="theme-entry" aria-label="皮肤主题" onClick={() => setPage("themes")}>
           <PaletteIcon />
           <span><strong>皮肤主题</strong><small>当前：{theme.name}</small></span>
@@ -160,6 +166,8 @@ export function Settings() {
               {errors.workdaysPerMonth && <span className="error">{errors.workdaysPerMonth}</span>}
             </div>
           </div>
+
+          <WorkWeekdays value={form.workWeekdays} onChange={workWeekdays => { setForm(f => ({ ...f, workWeekdays })); setErrors(previous => ({ ...previous, workWeekdays: undefined })); }} error={errors.workWeekdays} />
 
           <div className="field-row">
             <div className="field">

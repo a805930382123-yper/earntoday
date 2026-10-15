@@ -9,10 +9,19 @@ use std::sync::Mutex;
 pub struct SalarySettings {
     pub monthly_salary: f64,
     pub workdays_per_month: u32,
+    #[serde(default = "default_work_weekdays")]
+    pub work_weekdays: Vec<u8>,
     pub work_start: String,
     pub work_end: String,
     pub lunch_start: String,
     pub lunch_end: String,
+}
+
+fn default_work_weekdays() -> Vec<u8> { vec![1, 2, 3, 4, 5] }
+
+fn valid_work_weekdays(days: &[u8]) -> bool {
+    !days.is_empty() && days.len() <= 7 && days.iter().all(|day| *day <= 6)
+        && days.iter().enumerate().all(|(index, day)| !days[..index].contains(day))
 }
 
 /// 悬浮窗位置：逻辑坐标，跨 DPI 缩放恢复更稳定。
@@ -112,6 +121,16 @@ fn parse_data(content: &str) -> AppData {
         Err(error) => return failed_data(format!("配置格式损坏：{error}")),
     };
     let mut invalid = false;
+    // Only disk reads recover malformed weekday fields. Save command payloads
+    // stay strict: empty selections must not silently become the default.
+    if let Some(settings) = value.get_mut("settings").and_then(serde_json::Value::as_object_mut) {
+        if let Some(field) = settings.get("workWeekdays") {
+            let days = serde_json::from_value::<Vec<u8>>(field.clone()).ok();
+            if !days.as_deref().is_some_and(valid_work_weekdays) {
+                settings.insert("workWeekdays".into(), serde_json::json!(default_work_weekdays()));
+            }
+        }
+    }
     for (key, valid, fallback) in [
         ("windowMode", ["full", "mini"], "full"),
         ("privacyMode", ["visible", "hidden"], "hidden"),
@@ -161,6 +180,9 @@ fn minutes(hm: &str) -> Option<i32> {
 
 /// 后端侧再次校验设置；非法数据不会被持久化。
 pub fn validate_settings(s: &SalarySettings) -> Result<(), String> {
+    if !valid_work_weekdays(&s.work_weekdays) {
+        return Err("请至少选择一个有效工作日（周一至周日）".into());
+    }
     if !s.monthly_salary.is_finite() || s.monthly_salary <= 0.0 {
         return Err("月薪必须大于 0".into());
     }
@@ -203,6 +225,56 @@ mod theme_tests {
         assert!(data.selected_theme_id.is_none());
         assert_eq!(data.settings.unwrap().monthly_salary, 8800.0);
         assert_eq!(data.position.unwrap().x, 150.0);
+    }
+
+    #[test]
+    fn legacy_weekdays_default_without_losing_other_settings() {
+        let data = parse_data(&legacy().to_string());
+        let settings = data.settings.unwrap();
+        assert_eq!(settings.work_weekdays, vec![1, 2, 3, 4, 5]);
+        assert_eq!(settings.workdays_per_month, 22);
+        assert_eq!(settings.monthly_salary, 8800.0);
+        assert_eq!(data.position.unwrap().x, 150.0);
+    }
+
+    #[test]
+    fn malformed_disk_weekdays_recover_only_this_field() {
+        for bad in [serde_json::json!(null), serde_json::json!([]), serde_json::json!([7]), serde_json::json!([-1]), serde_json::json!([1.5]), serde_json::json!([1,1]), serde_json::json!(["1"]), serde_json::json!({"x":1})] {
+            let mut value = legacy(); value["settings"]["workWeekdays"] = bad;
+            value["selectedThemeId"] = serde_json::json!("mibao");
+            value["privacyMode"] = serde_json::json!("hidden");
+            let data = parse_data(&value.to_string());
+            assert_eq!(data.selected_theme_id.as_deref(), Some("mibao"));
+            assert_eq!(data.privacy_mode, PrivacyMode::Hidden);
+            let settings = data.settings.unwrap();
+            assert_eq!(settings.work_weekdays, default_work_weekdays());
+            assert_eq!(settings.monthly_salary, 8800.0);
+            assert_eq!(settings.work_start, "09:00");
+            assert!(data.config_error.is_none());
+        }
+    }
+
+    #[test]
+    fn save_weekdays_is_strict_and_roundtrips_independently() {
+        let mut data = parse_data(&legacy().to_string());
+        for bad in [vec![], vec![7], vec![1,1]] {
+            data.settings.as_mut().unwrap().work_weekdays = bad;
+            assert!(validate_settings(data.settings.as_ref().unwrap()).is_err());
+        }
+        for days in [vec![0], vec![1,2,3,4,5,6], vec![0,1,2,3,4,5,6]] {
+            data.settings.as_mut().unwrap().work_weekdays = days.clone();
+            assert!(validate_settings(data.settings.as_ref().unwrap()).is_ok());
+            data.window_mode = WindowMode::Mini;
+            data.privacy_mode = PrivacyMode::Hidden;
+            data.selected_theme_id = Some("mibao".into());
+            let restored = parse_data(&serde_json::to_string(&data).unwrap());
+            let settings = restored.settings.unwrap();
+            assert_eq!(settings.work_weekdays, days);
+            assert_eq!(settings.workdays_per_month, 22);
+            assert_eq!(restored.window_mode, WindowMode::Mini);
+            assert_eq!(restored.privacy_mode, PrivacyMode::Hidden);
+            assert_eq!(restored.selected_theme_id.as_deref(), Some("mibao"));
+        }
     }
 
     #[test]

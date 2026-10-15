@@ -164,6 +164,30 @@ body {
   margin-bottom: 10px;
 }
 
+/* Keep the salary page compact in the existing 400×600 settings window. */
+.salary-settings-card { padding: 10px 20px 8px; }
+.salary-settings-card .settings-portrait { width: 170px; height: 116px; margin-bottom: 4px; }
+.salary-settings-card .settings-head { margin-bottom: 8px; }
+.salary-settings-card .settings-head h1 { font-size: 19px; line-height: 24px; }
+.salary-settings-card .settings-head .subtitle { font-size: 11px; line-height: 15px; }
+.salary-settings-card .field-row { margin-bottom: 6px; }
+.salary-settings-card .field input { height: 34px; }
+.salary-settings-card .work-hours-hint { margin-bottom: 8px; }
+.salary-settings-card .preview { padding: 8px 12px; margin-bottom: 10px; }
+.salary-settings-card .primary-btn { height: 40px; }
+.work-weekdays { position: relative; min-width: 0; border: 0; padding: 0; margin: 0 0 8px; }
+.work-weekdays legend { padding: 0; font-size: 12px; line-height: 20px; font-weight: 600; color: var(--skin-label,#48657e); }
+.work-weekdays p { color: var(--skin-subtitle,#6f8ba1); font-size: 10px; line-height: 14px; margin: 1px 0 5px; }
+.work-weekdays #weekdays-purpose { margin: 5px 0 0; }
+.weekday-presets { position: absolute; top: -20px; right: 0; display: flex; gap: 5px; }
+.weekday-presets button { border: 0; padding: 2px 6px; border-radius: 6px; background: var(--porcelain-deep); color: var(--blue-deep); font: inherit; font-size: 10px; line-height: 16px; cursor: pointer; }
+.weekday-options { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 4px; }
+.weekday-options button { display: flex; align-items: center; justify-content: center; gap: 2px; height: 28px; border: 1px solid var(--skin-input-border,#cfe6fb); border-radius: 8px; background: #fff; color: var(--skin-label,#48657e); font: inherit; font-size: 11px; cursor: pointer; }
+.weekday-options button > span { width: 7px; font-size: 9px; }
+.weekday-options button[aria-pressed="true"] { background: var(--blue-light); border-color: var(--blue-deep); color: var(--ink); font-weight: 700; }
+.weekday-options button:hover { border-color: var(--blue-deep); }
+.weekday-options button:focus-visible, .weekday-presets button:focus-visible { outline: 2px solid var(--skin-focus-color,var(--blue-deep)); outline-offset: 2px; }
+
 .field {
   display: flex;
   flex-direction: column;

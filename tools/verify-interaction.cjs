@@ -117,7 +117,7 @@ async function main() {
         assert.deepEqual(stored.settings, original.settings);
         await setTime('08:00', 'before'); assert.equal(await target().count(), 0);
         await page.clock.setFixedTime(new Date('2026-10-17T10:00:00+08:00')); await page.clock.runFor(1000);
-        await page.waitForSelector('.state-weekend'); assert.equal(await target().count(), 0);
+        await page.waitForSelector('.state-rest_day'); assert.equal(await target().count(), 0);
         assert.deepEqual(errors, []);
         await context.close();
         console.log(`PASS interaction ${theme} DPI ${dpi}`);

@@ -1,5 +1,6 @@
 import type { SkinTheme } from "./catalog";
 import working from "../assets/mibao/working.png";
+import workingPrivate from "../assets/mibao/working-private.png";
 import lunch from "../assets/mibao/lunch.png";
 import finished from "../assets/mibao/finished.png";
 import settings from "../assets/mibao/settings.png";
@@ -20,7 +21,13 @@ export const MIBAO_THEME: SkinTheme = {
     finished: { src: finishedReact, text: "下班啦！喵！", miniText: "下班啦，喵！", duration: 1200, motion: "playful", placement: { width: "100%", left: "0%", bottom: "0%" } },
   },
   characterFilter: "none",
-  stateLabels: { lunch: "午休中" },
+  privacy: {
+    working: workingPrivate,
+    color: "#eaa148", highlight: "#ffe3a0", outline: "#a56b35", tilt: "-0.55deg",
+    full: { left: "60%", top: "-12px", width: "48px" },
+    mini: { left: "104px", top: "4px", width: "18px" },
+  },
+  stateLabels: { lunch: "午休中", rest_day: "今天休息喵～" },
   mini: { width: "200px", top: "9px", offsets: { working: "-20px", lunch: "-12px", finished: "-20px" } },
   decorations: { noteSymbol: "🐾", symbolColor: "#c99962", cardAccent: paw },
   colors: {

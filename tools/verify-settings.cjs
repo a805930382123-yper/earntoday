@@ -42,8 +42,8 @@ async function prepare(page) {
 async function checkLayout(page) {
   assert.equal(await page.locator('form input').count(), 6);
   const portrait = await page.locator('.settings-portrait').boundingBox();
-  assert.equal(portrait.width, 190);
-  assert.equal(portrait.height, 140);
+  assert.equal(portrait.width, 170);
+  assert.equal(portrait.height, 116);
   const title = await page.locator('.settings-head h1').boundingBox();
   assert.ok(portrait.y + portrait.height <= title.y, 'Character overlaps title');
   const save = await page.getByRole('button', { name: '保存设置' }).boundingBox();
@@ -85,7 +85,7 @@ async function main() {
     assert.ok((await page.locator('.preview').textContent()).includes('66.67'));
     await page.getByRole('button', { name: '保存设置' }).click();
     await page.waitForSelector('.widget-stage');
-    assert.deepEqual(await page.evaluate(() => window.__settingsTest.saved), { monthlySalary: 10000, workdaysPerMonth: 20, workStart: '09:30', workEnd: '18:30', lunchStart: '12:30', lunchEnd: '14:00' });
+    assert.deepEqual(await page.evaluate(() => window.__settingsTest.saved), { monthlySalary: 10000, workdaysPerMonth: 20, workWeekdays: [1,2,3,4,5], workStart: '09:30', workEnd: '18:30', lunchStart: '12:30', lunchEnd: '14:00' });
     await page.getByRole('button', { name: '打开设置' }).click();
     await page.waitForSelector('.settings-shell');
     assert.equal(await page.getByLabel('月薪（元）').inputValue(), '10000');

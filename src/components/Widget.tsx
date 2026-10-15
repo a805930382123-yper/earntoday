@@ -26,7 +26,7 @@ const STATUS_TEXT: Record<WorkState, string> = {
   lunch: "午休充电中",
   after: "今日打工完成",
   before: "准备开工啦",
-  weekend: "今天休息啦",
+  rest_day: "今天休息啦～",
 };
 
 const MOOD: Record<WorkState, GirlMood> = {
@@ -34,7 +34,7 @@ const MOOD: Record<WorkState, GirlMood> = {
   lunch: "lunch",
   after: "happy",
   before: "rest",
-  weekend: "rest",
+  rest_day: "lunch",
 };
 
 // Keep the entrance quiet when returning from settings within this app session.
@@ -224,14 +224,14 @@ export function Widget() {
         </div>
 
         <div className={`status-row${state === "after" ? " completion-badge" : ""}`}>
-          {state === "after" ? <CheckIcon /> : state === "lunch" ? <CoffeeIcon /> : <StatusChartIcon />}
-          {state === "lunch" || state === "after" ? null : <span className={`status-dot status-${state}`} />}
+          {state === "after" ? <CheckIcon /> : state === "lunch" || state === "rest_day" ? <CoffeeIcon /> : <StatusChartIcon />}
+          {state === "lunch" || state === "after" || state === "rest_day" ? null : <span className={`status-dot status-${state}`} />}
           <span className="status-text">{theme.stateLabels?.[state] ?? STATUS_TEXT[state]}</span>
           {hidden && <span className="privacy-caption"><LockIcon />收入已隐藏</span>}
           <span className="status-zzz" aria-hidden="true">z z Z</span>
         </div>
 
-        <div className="progress-area">
+        {state === "rest_day" ? <p className="rest-day-summary">今天不用赶时间，好好休息吧</p> : <div className="progress-area">
           <div className="progress-track">
             <div className="progress-bar" role="progressbar" aria-label="今日有效工作进度" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)}>
               <div className="progress-fill" style={{ width: `${(progress * 100).toFixed(2)}%` }} />
@@ -247,11 +247,11 @@ export function Widget() {
             <span className="time-divider" />
             <span className="time-item">
               {state === "after" ? <CoffeeIcon /> : <HourglassIcon />}
-              {state === "after" ? <strong className="off-work-label">已下班</strong> : state === "weekend" ? "今天不上班" : "距离下班"}
-              {state === "weekend" || state === "after" ? null : <strong className="time-value">{remaining}</strong>}
+              {state === "after" ? <strong className="off-work-label">已下班</strong> : "距离下班"}
+              {state === "after" ? null : <strong className="time-value">{remaining}</strong>}
             </span>
           </div>
-        </div>
+        </div>}
       </div>
       {state === "after" && (
         <div className={`after-work-note${celebrate ? " note-enter" : ""}`} role="status">

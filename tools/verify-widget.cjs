@@ -188,7 +188,7 @@ async function main() {
   assert.equal(await page.locator('.after-work-note').count(), 0);
   await page.clock.setSystemTime(new Date('2026-10-17T19:00:00+08:00'));
   await page.clock.runFor(1000);
-  assert.equal((await snapshot()).state, 'weekend');
+  assert.equal((await snapshot()).state, 'rest_day');
   assert.equal((await snapshot()).money, '¥0.00');
   assert.equal(await page.locator('.after-work-note').count(), 0);
   assert.deepEqual(errors, []);

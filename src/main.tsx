@@ -6,6 +6,7 @@ import "./widget.css";
 import "./themes.css";
 import "./display.css";
 import "./interaction.css";
+import "./privacy-question.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

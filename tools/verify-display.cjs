@@ -87,7 +87,7 @@ async function main() {
       assert.deepEqual(page.viewportSize(), { width: 260, height: 276 });
       await assertPrivate();
       const stored = await page.evaluate(() => structuredClone(window.__themeTest.data));
-      assert.deepEqual(stored.settings, original.settings);
+      assert.deepEqual(stored.settings, { ...original.settings, workWeekdays: [1,2,3,4,5] });
       assert.deepEqual(stored.position, original.position);
       assert.equal(await page.evaluate(() => window.__themeTest.listenerCount()), 6);
       await page.evaluate(() => { window.__themeTest.failSave = true; });

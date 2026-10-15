@@ -9,6 +9,8 @@ using System.Runtime.InteropServices;
 public static class PetPointerTest {
   [StructLayout(LayoutKind.Sequential)] public struct Point { public int X, Y; }
   [StructLayout(LayoutKind.Sequential)] public struct Rect { public int L, T, R, B; }
+  [StructLayout(LayoutKind.Sequential)] public struct Message { public IntPtr Window; public uint Id; public UIntPtr WParam; public IntPtr LParam; public uint Time; public Point Position; public uint Private; }
+  [DllImport("user32.dll")] public static extern bool PeekMessage(out Message message, IntPtr window, uint min, uint max, uint remove);
   [DllImport("user32.dll")] public static extern bool GetCursorPos(out Point p);
   [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
   [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr w);
@@ -32,6 +34,8 @@ if ([PetPointerTest]::GetForegroundWindow() -ne $taskHandle) {
   $foregroundPid = [uint32]0
   $foregroundThread = [PetPointerTest]::GetWindowThreadProcessId([PetPointerTest]::GetForegroundWindow(), [ref]$foregroundPid)
   $taskThread = [PetPointerTest]::GetCurrentThreadId()
+  $taskMessage = New-Object PetPointerTest+Message
+  [PetPointerTest]::PeekMessage([ref]$taskMessage, [IntPtr]::Zero, 0, 0, 0) | Out-Null
   $attached = [PetPointerTest]::AttachThreadInput($taskThread, $foregroundThread, $true)
   try { [PetPointerTest]::SetForegroundWindow($taskHandle) | Out-Null }
   finally { if ($attached) { [PetPointerTest]::AttachThreadInput($taskThread, $foregroundThread, $false) | Out-Null } }
@@ -50,8 +54,11 @@ try {
   if ($Action -eq 'drag') {
     [PetPointerTest]::SetCursorPos(($TaskX - 10), ($TaskY + 5)) | Out-Null
     Start-Sleep -Milliseconds 180
-    [PetPointerTest]::SetCursorPos(($TaskX - 35), ($TaskY + 18)) | Out-Null
-    Start-Sleep -Milliseconds 180
+    # Keep moving while the asynchronous WebView-to-native drag loop starts.
+    for ($taskStep = 1; $taskStep -le 12; $taskStep++) {
+      [PetPointerTest]::SetCursorPos(($TaskX - 10 - $taskStep * 3), ($TaskY + 5 + $taskStep)) | Out-Null
+      Start-Sleep -Milliseconds 60
+    }
   } else {
     # Two physical pixels of normal hand jitter must still count as a click.
     [PetPointerTest]::SetCursorPos(($TaskX + 2), $TaskY) | Out-Null

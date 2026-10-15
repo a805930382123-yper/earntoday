@@ -11,7 +11,7 @@ export function MiniWidget({ state, mood, moneyText, status, onDragEnd, interact
   const { theme } = useTheme();
   const { privacyMode, error } = useDisplay();
   const hidden = privacyMode === "hidden";
-  const pose = state === "lunch" ? "lunch" : state === "after" ? "finished" : "working";
+  const pose = state === "lunch" || state === "rest_day" ? "lunch" : state === "after" ? "finished" : "working";
   const style = { "--mini-pet-left": theme.mini?.offsets?.[pose] ?? "-37px", "--mini-pet-width": theme.mini?.width ?? "164px", "--mini-pet-top": theme.mini?.top ?? "10px" } as CSSProperties;
   const text = state === "after" ? "已下班 · 美好一天" : state === "lunch" ? "午休中 · 充电中" : status;
   // Only format a real amount for a visible UI; no hidden copy in DOM or titles.

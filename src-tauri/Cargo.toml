@@ -1,6 +1,6 @@
 [package]
 name = "earn-today"
-version = "0.1.0"
+version = "0.2.0"
 description = "今天又赚了多少 - 可爱蓝发女孩桌面工资小组件"
 authors = ["you"]
 edition = "2021"

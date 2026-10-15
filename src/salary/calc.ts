@@ -6,6 +6,8 @@ export interface SalarySettings {
   monthlySalary: number;
   /** 每月工作天数 */
   workdaysPerMonth: number;
+  /** 每周固定工作日，本地 getDay() 编号：周日 0，周一 1。 */
+  workWeekdays: number[];
   /** 上班时间，24 小时制 "HH:MM" */
   workStart: string;
   /** 下班时间，24 小时制 "HH:MM" */
@@ -21,7 +23,23 @@ export type WorkState =
   | "working" // 上班中
   | "lunch" // 午休中
   | "after" // 下班后
-  | "weekend"; // 非工作日
+  | "rest_day"; // 用户未选择的非工作日，与午休不同
+
+export const DEFAULT_WORK_WEEKDAYS: readonly number[] = [1, 2, 3, 4, 5];
+export const WEEKDAYS = [
+  { day: 1, label: "周一" }, { day: 2, label: "周二" }, { day: 3, label: "周三" },
+  { day: 4, label: "周四" }, { day: 5, label: "周五" }, { day: 6, label: "周六" }, { day: 0, label: "周日" },
+];
+
+export function validWorkWeekdays(value: unknown): value is number[] {
+  return Array.isArray(value) && value.length > 0 && value.length <= 7 &&
+    value.every(day => Number.isInteger(day) && day >= 0 && day <= 6) && new Set(value).size === value.length;
+}
+
+/** 老配置/异常读取仅恢复星期字段，不影响其他工资设置。保存仍拒绝空集合。 */
+export function normalizeWorkWeekdays(value: unknown): number[] {
+  return validWorkWeekdays(value) ? [...value].sort((a, b) => (a || 7) - (b || 7)) : [...DEFAULT_WORK_WEEKDAYS];
+}
 
 /** 将 "HH:MM" 解析为当天从 00:00 起的分钟数，非法格式返回 NaN。 */
 export function parseMinutes(hm: string): number {
@@ -63,7 +81,7 @@ function nowMinutes(now: Date): number {
 
 export function workState(now: Date, s: SalarySettings): WorkState {
   const day = now.getDay();
-  if (day === 0 || day === 6) return "weekend";
+  if (!normalizeWorkWeekdays(s.workWeekdays).includes(day)) return "rest_day";
   const t = nowMinutes(now);
   const start = parseMinutes(s.workStart);
   const lunchStart = parseMinutes(s.lunchStart);
@@ -77,13 +95,13 @@ export function workState(now: Date, s: SalarySettings): WorkState {
 }
 
 /**
- * 今日已累计的有效工作分钟数（午休剔除，下班封顶，上班前/周末为 0）。
+ * 今日已累计的有效工作分钟数（午休剔除，下班封顶，上班前/休息日为 0）。
  * 每次都基于当前系统时间重新计算，不依赖增量累加，
  * 因此隐藏、睡眠恢复、重启后结果依然正确。
  */
 export function effectiveWorkedMinutes(now: Date, s: SalarySettings): number {
   const state = workState(now, s);
-  if (state === "weekend" || state === "before") return 0;
+  if (state === "rest_day" || state === "before") return 0;
   const t = nowMinutes(now);
   const start = parseMinutes(s.workStart);
   const end = parseMinutes(s.workEnd);
@@ -111,6 +129,7 @@ export function workProgress(now: Date, s: SalarySettings): number {
 
 /** 距离下班的剩余分钟数（按自然时间计算，午休期间也在倒计时）。 */
 export function minutesUntilOffWork(now: Date, s: SalarySettings): number {
+  if (workState(now, s) === "rest_day") return 0;
   const t = nowMinutes(now);
   const end = parseMinutes(s.workEnd);
   return Math.max(end - t, 0);
@@ -132,6 +151,7 @@ export function formatDuration(minutes: number): string {
 export interface ValidationErrors {
   monthlySalary?: string;
   workdaysPerMonth?: string;
+  workWeekdays?: string;
   workStart?: string;
   workEnd?: string;
   lunchStart?: string;
@@ -143,6 +163,7 @@ export interface ValidationErrors {
 /** 校验设置；全部合法返回 null，否则返回按字段分组的错误信息。 */
 export function validateSettings(s: SalarySettings): ValidationErrors | null {
   const errors: ValidationErrors = {};
+  if (!validWorkWeekdays(s.workWeekdays)) errors.workWeekdays = "请至少选择一个工作日（周一至周日）";
   if (!Number.isFinite(s.monthlySalary) || s.monthlySalary <= 0) {
     errors.monthlySalary = "月薪必须大于 0";
   } else if (s.monthlySalary > 1_000_000_000) {
@@ -174,6 +195,7 @@ export function validateSettings(s: SalarySettings): ValidationErrors | null {
 export const DEFAULT_SETTINGS: SalarySettings = {
   monthlySalary: 10000,
   workdaysPerMonth: 22,
+  workWeekdays: [...DEFAULT_WORK_WEEKDAYS],
   workStart: "09:00",
   workEnd: "18:00",
   lunchStart: "12:00",
