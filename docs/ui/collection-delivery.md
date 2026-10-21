@@ -71,7 +71,7 @@ src/assets/themes/mibao/collection/
   stage-0.webp ... stage-10.webp
 ```
 
-共 36 张无损 WebP，约 4.72 MiB；逐文件尺寸、Alpha、边界和字节数见 `runtime-assets.json`。蓝色阶段图固定 500×440，咪宝固定 500×560。独立空/半/满参考和拆分图层保留供后续维护；打包只引用实际使用的阶段、投放与装饰资源。`assets-preview.jpg` 为美术合成检查图，**不是应用截图**。
+共 36 张无损 WebP，约 4.76 MiB；逐文件尺寸、Alpha、边界和字节数见 `runtime-assets.json`。蓝色阶段图固定 500×440，咪宝固定 500×560。独立空/半/满参考和拆分图层保留供后续维护；打包只引用实际使用的阶段、投放与装饰资源。`assets-preview.jpg` 为美术合成检查图，**不是应用截图**。
 
 十格标识直接复用蓝色 `stage-0` / `stage-10` 和咪宝 `dried-fish`。未完成图标降低透明度及饱和度；没有为十格新增图片。迷你模式使用相同图片作为单个主题图标。
 
@@ -98,7 +98,7 @@ src/assets/themes/mibao/collection/
 - `npm test`：40 项通过（原工资 37，新阶段/动画判断/文案 3）。
 - `cargo test --manifest-path src-tauri/Cargo.toml`：13 项通过，覆盖旧配置默认展示、展示/主题/隐私独立恢复及无效模式保护。
 - `npm run build`：TypeScript 与 Vite 生产构建通过。
-- `npm run tauri -- build`：Windows release EXE 与 NSIS 安装包构建通过，安装包约 29.70 MiB。
+- `npm run tauri -- build`：Windows release EXE 与 NSIS 安装包构建通过，贴纸修复后安装包约 29.73 MiB。
 - `tools/verify-collection.cjs`：两主题、空/3/5/10、完整/迷你、十格数与主容器同步、各阶段文案、一次节点动画及恢复、午休、休息日、隐私、主题和工时修改、时间跳变、减少动态效果通过。
 - `tools/verify-collection-desktop.cjs`：真实 release EXE 的 WebView2 实测通过；原生保存后磁盘字段正确，完整 260×276 / 迷你 260×108，两主题空/3/5/10、午休保持、休息日为空、隐私问号规则、桌宠互动、实际进程重启恢复展示/窗口/主题/隐私均通过。测试结束恢复原配置文件字节。
 - 原有 `verify-display.cjs`、`verify-themes.cjs`、`verify-work-weekdays.cjs` 已通过；包含两套主题、四档 DPI、金额计算与隐私、设置草稿及工作日回归。
@@ -121,6 +121,12 @@ src/assets/themes/mibao/collection/
 | 隐私隐藏 | ![](collection-desktop/blue-whale-girl-private.png) | ![](collection-desktop/mibao-private.png) |
 
 ## 视觉与验证限制
+
+### 猫脸贴纸修复（2026-10-21）
+
+修正素材合成时猫脸遮罩过低的问题：原遮罩遗漏额头与耳朵上沿，导致上层鱼干出现在 Logo 内。现在以原猫脸为基础补全整个贴纸轮廓，4 倍分辨率制作抗锯齿遮罩，贴纸主体设为不透明，增加细暖色边和轻微接触阴影，并在所有鱼干层完成后最后合成。重新导出咪宝 0～10 全部阶段，容器大小和摆放不变。
+
+前端将投放中的鱼干放在罐体图片后方，包含迷你模式；静态堆积与动画均不会盖住玻璃外侧的猫脸。逐像素检查确认 11 个阶段的额头和脸部核心区域完全一致。浏览器积累模式回归与 Windows 打包通过，并更新对应实际运行截图。已有运行进程继续使用旧素材；从托盘退出后重开可加载修复版本。
 
 当前是现有扁平 PNG 素材的最小分层方案：米饭沿遮罩逐段露出；鱼干复用同一条素材旋转摆放，罐体和标签来自原图。没有物理堆叠、米粒模拟或逐帧重绘的玻璃折射，满罐与美术源中的满罐参考不会逐像素相同。实际尺寸下角色、容器和十格均可辨认，未发现裁边、黑底或按钮遮挡。
 

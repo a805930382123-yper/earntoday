@@ -4,6 +4,9 @@
 .collection-scene { position: relative; width: 270px; height: 126px; }
 .collection-vessel { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); width: 166px; height: 136px; object-fit: contain; }
 .collection-fish .collection-vessel { width: 128px; height: 128px; }
+/* Fish enter the jar behind its glass and exterior label, including in mini. */
+.collection-fish .collection-vessel { z-index: 1; }
+.collection-fish .collection-deposit { z-index: 0; }
 .collection-accent { position: absolute; right: 7px; bottom: 9px; width: 45px; height: 43px; object-fit: contain; opacity: .85; transform: rotate(8deg); }
 .collection-fish .collection-accent { width: 28px; height: 28px; right: 34px; bottom: 15px; }
 .collection-star { position: absolute; left: 36px; top: 21px; width: 25px; height: 31px; object-fit: contain; }

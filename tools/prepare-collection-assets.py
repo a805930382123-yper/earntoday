@@ -41,9 +41,9 @@ report = []
 for p in SOURCE.glob('*.png'):
     im = Image.open(p)
     alpha = im.getchannel('A') if im.mode == 'RGBA' else None
-    report.append(dict(file=p.name, format=im.format, size=im.size, mode=im.mode,
+    report.append(dict(file=p.name, size=im.size, mode=im.mode,
                        alphaExtrema=alpha.getextrema() if alpha else None,
-                       bounds=alpha.getbbox() if alpha else (0,0,*im.size)))
+                       bounds=alpha.getbbox() if alpha else (0,0,*im.size),format=im.format))
 
 blue = DEST / 'blue-whale-girl/collection'
 cat = DEST / 'mibao/collection'
@@ -88,11 +88,26 @@ fish=crop(sheet,(45,640,325,790)); save(fish,cat,'dried-fish')
 save(crop(sheet,(960,845,1090,978)),cat,'paw')
 save(crop(sheet,(1200,610,1303,754)),cat,'star')
 base=Image.new('RGBA',(500,560));jar.thumbnail((440,480));base.alpha_composite(jar,((500-jar.width)//2,70))
-# Retain the supplied cat-face label above the fish, plus glass reflections/rim.
-label=base.copy();mask=Image.new('L',base.size);d=ImageDraw.Draw(mask)
-d.ellipse((156,312,344,398),fill=255)
-d.polygon([(172,333),(178,274),(220,312),(276,312),(317,274),(333,338)],fill=255)
-label.putalpha(Image.fromarray(np.minimum(np.array(label.getchannel('A')),np.array(mask))))
+# Trace the COMPLETE supplied face (including forehead and ear tips). The old
+# mask started below the forehead, so upper fish appeared to cut into the logo.
+# Supersampling keeps this exterior sticker smooth at both desktop sizes.
+scale=4
+mask=Image.new('L',(base.width*scale,base.height*scale));d=ImageDraw.Draw(mask)
+d.ellipse(tuple(v*scale for v in (164,273,332,367)),fill=255)
+d.polygon([(x*scale,y*scale) for x,y in [(183,294),(182,278),(185,259),(189,250),
+             (194,248),(201,252),(223,277),(273,277),(291,257),(299,249),
+             (305,248),(309,255),(313,271),(315,295)]],fill=255)
+mask=mask.resize(base.size,Image.Resampling.LANCZOS)
+label=base.copy()
+label.putalpha(mask)  # Paper is opaque; source glass alpha must not tint the logo with fish.
+# A quiet warm edge and contact shadow read as paper attached to the glass,
+# rather than a face floating among the fish. Apply this foreground LAST.
+edge=Image.new('RGBA',base.size,(171,122,77,0))
+edge.putalpha(mask.filter(ImageFilter.MaxFilter(3)).point(lambda a: round(a*.35)))
+shadow=Image.new('RGBA',base.size,(103,62,29,0))
+shadow.putalpha(mask.filter(ImageFilter.GaussianBlur(1.5)).point(lambda a: round(a*.22)))
+sticker=Image.new('RGBA',base.size)
+sticker.alpha_composite(shadow,(0,2));sticker.alpha_composite(edge);sticker.alpha_composite(label)
 placements=[(175,470,-12),(305,456,15),(230,420,-7),(320,378,-25),(150,370,20),
             (255,330,-20),(160,288,12),(320,270,30),(205,232,-22),(285,192,15)]
 mask=Image.new('L',base.size);ImageDraw.Draw(mask).rounded_rectangle((74,162,426,510),radius=44,fill=255)
@@ -103,13 +118,13 @@ for stage in range(11):
         layer=Image.new('RGBA',base.size);layer.alpha_composite(f,(x-f.width//2,y-f.height//2))
         layer.putalpha(Image.fromarray(np.minimum(np.array(layer.getchannel('A')),np.array(mask))))
         result.alpha_composite(layer)
-    if stage: result.alpha_composite(label)
+    result.alpha_composite(sticker)
     save(result,cat,f'stage-{stage}')
 (SOURCE/'asset-inspection.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
 runtime=[]
 for p in sorted(DEST.glob('*/collection/*.webp')):
     im=Image.open(p)
-    runtime.append(dict(file=p.relative_to(ROOT).as_posix(),format=im.format,size=im.size,mode=im.mode,
-                        alphaExtrema=im.getchannel('A').getextrema(),bounds=im.getchannel('A').getbbox(),bytes=p.stat().st_size))
+    runtime.append(dict(file=p.relative_to(ROOT).as_posix(),size=im.size,mode=im.mode,
+                        alphaExtrema=im.getchannel('A').getextrema(),bounds=im.getchannel('A').getbbox(),bytes=p.stat().st_size,format=im.format))
 (SOURCE/'runtime-assets.json').write_text(json.dumps(runtime,ensure_ascii=False,indent=2),encoding='utf-8')
 print(f'Prepared {len(list(DEST.glob("*/collection/*.webp")))} lossless WebP resources; originals untouched.')
