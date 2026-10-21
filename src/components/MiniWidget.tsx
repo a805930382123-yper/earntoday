@@ -24,7 +24,7 @@ export function MiniWidget({ state, mood, moneyText, status, onDragEnd, interact
       <div className="mini-theme-detail" aria-hidden="true">{theme.decorations.cardAccent ? <img src={theme.decorations.cardAccent} alt="" draggable={false} /> : <><i /><i /><i /></>}</div>
       <div className="drag-overlay" data-tauri-drag-region onMouseUp={onDragEnd} />
     </div>
-    <div className="mini-pet"><InteractivePet mood={mood} width={164} interaction={interaction} mini onDragEnd={onDragEnd} /></div>
+    <div className="mini-pet"><InteractivePet mood={mood} width={164} interaction={interaction} mini onDragEnd={onDragEnd} stage={stage} /></div>
     <div className="mini-information">
       {collection ? <Collection stage={stage} state={state} mini pulse={deposit.pulse} onAnimationEnd={deposit.finish} interacting={!!interaction.active} /> : <><div className="mini-title">今天已经赚到</div>
       <div className={`mini-amount${hidden ? " masked-amount" : amountClass}`} aria-label={hidden ? "收入已隐藏" : undefined}>

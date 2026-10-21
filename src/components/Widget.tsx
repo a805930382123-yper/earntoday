@@ -187,7 +187,7 @@ export function Widget() {
 
       {/* Q 版蓝发女孩：趴在卡片上沿 */}
       <div className="girl-wrap">
-        <InteractivePet mood={MOOD[state]} interaction={interaction} onDragEnd={handleDragEnd} />
+        <InteractivePet mood={MOOD[state]} interaction={interaction} onDragEnd={handleDragEnd} stage={stage} />
       </div>
       <PetBubble interaction={interaction} />
 

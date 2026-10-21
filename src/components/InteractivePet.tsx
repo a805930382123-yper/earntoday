@@ -8,7 +8,7 @@ import { useDisplay } from "../display/DisplayProvider";
 
 type Gesture = { id: number; x: number; y: number; dragging: boolean };
 
-export function InteractivePet({ mood, width, interaction, mini = false, onDragEnd }: { mood: GirlMood; width?: number; interaction: PetInteraction; mini?: boolean; onDragEnd: () => void }) {
+export function InteractivePet({ mood, width, interaction, mini = false, onDragEnd, stage }: { mood: GirlMood; width?: number; interaction: PetInteraction; mini?: boolean; onDragEnd: () => void; stage?: number }) {
   const { theme } = useTheme();
   const gesture = useRef<Gesture | null>(null);
   const clearGesture = () => { gesture.current = null; };
@@ -34,7 +34,7 @@ export function InteractivePet({ mood, width, interaction, mini = false, onDragE
     if (Math.hypot(event.clientX - current.x, event.clientY - current.y) < 5) interaction.trigger();
   };
   const pet = <>
-    <ChibiGirl mood={mood} width={width} interaction={interaction} mini={mini} />
+    <ChibiGirl mood={mood} width={width} interaction={interaction} mini={mini} stage={stage} />
     {interaction.enabled && <button type="button" className="pet-hit-area" aria-label={`${theme.name}桌宠，点击互动`} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp} onPointerCancel={clearGesture} onLostPointerCapture={clearGesture} onBlur={clearGesture} onClick={event => { if (event.detail === 0) interaction.trigger(); }} />}
   </>;
   return <>

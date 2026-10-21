@@ -1,4 +1,6 @@
 import { RICE_COPY, FISH_COPY, type CollectionCopy } from "./copy";
+import characterHalf from "../assets/themes/blue-whale-girl/collection/character-half.webp";
+import characterFull from "../assets/themes/blue-whale-girl/collection/character-full.webp";
 
 const assets = import.meta.glob<string>([
   "../assets/themes/*/collection/stage-*.webp", "../assets/themes/*/collection/rice-spoon.webp",
@@ -17,3 +19,9 @@ function config(id: string, kind: "rice" | "fish", title: string, copy: Collecti
 const blue = config("blue-whale-girl", "rice", "饭饭补给站", RICE_COPY);
 const mibao = config("mibao", "fish", "小鱼干储蓄罐", FISH_COPY);
 export function collectionTheme(id: string) { return id === "mibao" ? mibao : blue; }
+
+/** Only these two blue collection poses change; all other stages use base art. */
+export function collectionCharacter(id: string, stage?: number): string | undefined {
+  if (id !== "blue-whale-girl") return undefined;
+  return stage === 5 ? characterHalf : stage === 10 ? characterFull : undefined;
+}
