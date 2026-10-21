@@ -1,0 +1,148 @@
+[
+  {
+    "file": "blue-whale-concept.png",
+    "size": [
+      1448,
+      1086
+    ],
+    "mode": "RGB",
+    "alphaExtrema": null,
+    "bounds": [
+      0,
+      0,
+      1448,
+      1086
+    ],
+    "format": "PNG"
+  },
+  {
+    "file": "mibao-concept.png",
+    "size": [
+      1448,
+      1086
+    ],
+    "mode": "RGB",
+    "alphaExtrema": null,
+    "bounds": [
+      0,
+      0,
+      1448,
+      1086
+    ],
+    "format": "PNG"
+  },
+  {
+    "file": "可爱鲸鱼饭团素材贴纸集.png",
+    "size": [
+      1448,
+      1086
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      0,
+      27,
+      1436,
+      1086
+    ],
+    "format": "PNG"
+  },
+  {
+    "file": "咪宝探头抱鱼贴纸.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      0,
+      15,
+      1253,
+      1254
+    ],
+    "format": "PNG"
+  },
+  {
+    "file": "抱着橙色鱼玩具的可爱虎斑猫.png",
+    "size": [
+      1448,
+      1086
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      0,
+      0,
+      1436,
+      1086
+    ],
+    "format": "PNG"
+  },
+  {
+    "file": "猫咪鱼干罐与闪耀贴纸素材集.png",
+    "size": [
+      1448,
+      1086
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      0,
+      19,
+      1447,
+      1086
+    ],
+    "format": "PNG"
+  },
+  {
+    "file": "蓝发鲸尾女仆慵懒贴纸.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      0,
+      21,
+      1254,
+      1220
+    ],
+    "format": "PNG"
+  },
+  {
+    "file": "蓝发鲸尾女仆探头贴纸.png",
+    "size": [
+      1448,
+      1086
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      0,
+      7,
+      1432,
+      1086
+    ],
+    "format": "PNG"
+  }
+]

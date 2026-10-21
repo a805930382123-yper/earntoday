@@ -8,13 +8,13 @@ async function prepare(page, themeId = null, display = {}) {
   await page.exposeFunction('__resizeThemeWindow', (width, height) => page.setViewportSize({ width, height }));
   await page.addInitScript(({ initialTheme, display }) => {
     const callbacks = new Map(), listeners = new Map(); let id = 0;
-    const data = { settings: { monthlySalary: 8800, workdaysPerMonth: 22, workStart: '09:00', workEnd: '18:00', lunchStart: '12:00', lunchEnd: '13:00' }, position: { x: 100, y: 200 }, selectedThemeId: initialTheme, windowMode: display.windowMode || 'full', privacyMode: display.privacyMode || 'visible', configError: display.configError };
+    const data = { settings: { monthlySalary: 8800, workdaysPerMonth: 22, workStart: '09:00', workEnd: '18:00', lunchStart: '12:00', lunchEnd: '13:00' }, position: { x: 100, y: 200 }, selectedThemeId: initialTheme, windowMode: display.windowMode || 'full', privacyMode: display.privacyMode || 'visible', displayMode: display.displayMode || 'amount', configError: display.configError };
     const emit = (event, payload = null) => { for (const listener of listeners.values()) if (listener.event === event) callbacks.get(listener.handler)?.({ event, id: listener.id, payload }); };
     window.__themeTest = { data, calls: [], failSave: false, emit, listenerCount: () => listeners.size };
     let release;
     const readGate = display.holdReads ? new Promise(resolve => { release = resolve; }) : Promise.resolve();
     window.__themeTest.releaseReads = () => release?.();
-    const preferences = () => ({ windowMode: data.windowMode, privacyMode: data.privacyMode });
+    const preferences = () => ({ windowMode: data.windowMode, privacyMode: data.privacyMode, displayMode: data.displayMode });
     const resizeMain = () => window.__resizeThemeWindow(260, data.windowMode === 'mini' ? 108 : 276);
     window.__TAURI_EVENT_PLUGIN_INTERNALS__ = { unregisterListener: (_event, eventId) => listeners.delete(eventId) };
     window.__TAURI_INTERNALS__ = {
@@ -42,7 +42,7 @@ async function prepare(page, themeId = null, display = {}) {
           if (window.__themeTest.failSave) throw new Error('模拟磁盘写入失败');
           data.selectedThemeId = args.selectedThemeId; emit('theme-updated', data.selectedThemeId); return;
         }
-        if (cmd === 'save_settings') { data.settings = { ...args.settings }; data.configError = null; await resizeMain(); emit('settings-updated'); emit('display-updated', preferences()); return; }
+        if (cmd === 'save_settings') { if (window.__themeTest.failSave) throw new Error('模拟磁盘写入失败'); data.settings = { ...args.settings }; if(args.displayMode) data.displayMode = args.displayMode; data.configError = null; emit('display-updated', preferences()); await resizeMain(); emit('settings-updated'); return; }
         throw new Error(`Unexpected command ${cmd}`);
       },
     };

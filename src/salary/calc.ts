@@ -122,9 +122,9 @@ export function earnedAmount(now: Date, s: SalarySettings): number {
 /** 今日工作进度 0-1（下班后固定为 1）。 */
 export function workProgress(now: Date, s: SalarySettings): number {
   const total = dailyWorkMinutes(s);
-  if (total <= 0) return 0;
+  if (!Number.isFinite(total) || total <= 0) return 0;
   const v = effectiveWorkedMinutes(now, s) / total;
-  return Math.min(Math.max(v, 0), 1);
+  return Number.isFinite(v) ? Math.min(Math.max(v, 0), 1) : 0;
 }
 
 /** 距离下班的剩余分钟数（按自然时间计算，午休期间也在倒计时）。 */

@@ -3,6 +3,7 @@ import { invoke } from "../tauri";
 import { useTheme } from "../themes/ThemeProvider";
 import { ThemePicker, PaletteIcon } from "./ThemePicker";
 import { WorkWeekdays } from "./WorkWeekdays";
+import { useDisplay, type DisplayMode } from "../display/DisplayProvider";
 import {
   DEFAULT_SETTINGS,
   dailySalary,
@@ -48,6 +49,8 @@ function toSettings(f: FormState): SalarySettings {
 
 export function Settings() {
   const { theme, assetError, notice } = useTheme();
+  const { displayMode: savedDisplayMode } = useDisplay();
+  const [displayMode, setDisplayMode] = useState<DisplayMode>(savedDisplayMode);
   const [page, setPage] = useState<"salary" | "themes">("salary");
   const [form, setForm] = useState<FormState>(INITIAL);
   const [isFirstRun, setIsFirstRun] = useState(true);
@@ -56,8 +59,9 @@ export function Settings() {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    invoke<{ settings: SalarySettings | null }>("load_data")
+    invoke<{ settings: SalarySettings | null; displayMode?: DisplayMode }>("load_data")
       .then((data) => {
+        setDisplayMode(data.displayMode === "collection" ? "collection" : "amount");
         if (data.settings) {
           const s = data.settings;
           setForm({
@@ -95,7 +99,7 @@ export function Settings() {
     setSubmitting(true);
     try {
       // Rust 端保存后会隐藏设置窗口并显示主悬浮窗
-      await invoke("save_settings", { settings: parsed });
+      await invoke("save_settings", { settings: parsed, displayMode });
     } catch (err) {
       setErrors({ form: String(err) });
       setSubmitting(false);
@@ -133,6 +137,14 @@ export function Settings() {
         </div>
 
         <form onSubmit={handleSubmit} noValidate>
+          <fieldset className="display-mode-picker">
+            <legend>显示方式</legend>
+            <div className="display-mode-options">
+              <label><input type="radio" name="display-mode" value="amount" checked={displayMode === "amount"} onChange={() => setDisplayMode("amount")} /><span>实时金额</span></label>
+              <label><input type="radio" name="display-mode" value="collection" checked={displayMode === "collection"} onChange={() => setDisplayMode("collection")} /><span>趣味积累</span></label>
+            </div>
+            <p>{displayMode === "collection" ? "用饭饭和小鱼干，收藏今天的努力" : "实时查看今天的工作收入"}</p>
+          </fieldset>
           <div className="field-row">
             <div className="field">
               <label htmlFor="salary">月薪（元）</label>

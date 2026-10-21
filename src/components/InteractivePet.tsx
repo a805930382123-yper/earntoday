@@ -4,6 +4,7 @@ import { useTheme } from "../themes/ThemeProvider";
 import type { PetInteraction } from "../interaction/types";
 import { ChibiGirl, type GirlMood } from "./ChibiGirl";
 import { PrivacyQuestion } from "./PrivacyQuestion";
+import { useDisplay } from "../display/DisplayProvider";
 
 type Gesture = { id: number; x: number; y: number; dragging: boolean };
 
@@ -43,7 +44,9 @@ export function InteractivePet({ mood, width, interaction, mini = false, onDragE
 }
 
 export function PetBubble({ interaction, mini = false }: { interaction: PetInteraction; mini?: boolean }) {
+  const { displayMode, privacyMode } = useDisplay();
   const { active } = interaction;
   if (!active) return null;
-  return <span className={`pet-bubble${mini ? " pet-mini-bubble" : ""}`} key={active.sequence} role="status">{mini ? active.config.miniText : active.config.text}</span>;
+  const text = displayMode === "collection" && privacyMode !== "hidden" && active.pose === "working" ? "又攒下一点努力～" : mini ? active.config.miniText : active.config.text;
+  return <span className={`pet-bubble${mini ? " pet-mini-bubble" : ""}`} key={active.sequence} role="status">{text}</span>;
 }

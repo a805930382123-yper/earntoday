@@ -40,11 +40,16 @@ pub enum WindowMode { #[default] Full, Mini }
 #[serde(rename_all = "lowercase")]
 pub enum PrivacyMode { #[default] Visible, Hidden }
 
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum DisplayMode { #[default] Amount, Collection }
+
 #[derive(Debug, Clone, Copy, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DisplayPreferences {
     pub window_mode: WindowMode,
     pub privacy_mode: PrivacyMode,
+    pub display_mode: DisplayMode,
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
@@ -61,6 +66,8 @@ pub struct AppData {
     #[serde(default)]
     pub privacy_mode: PrivacyMode,
     #[serde(default)]
+    pub display_mode: DisplayMode,
+    #[serde(default)]
     pub full_position: Option<WindowPosition>,
     #[serde(default)]
     pub position_scale: Option<f64>,
@@ -73,7 +80,7 @@ pub struct AppData {
 
 impl AppData {
     pub fn display(&self) -> DisplayPreferences {
-        DisplayPreferences { window_mode: self.window_mode, privacy_mode: self.privacy_mode }
+        DisplayPreferences { window_mode: self.window_mode, privacy_mode: self.privacy_mode, display_mode: self.display_mode }
     }
 }
 
@@ -134,6 +141,7 @@ fn parse_data(content: &str) -> AppData {
     for (key, valid, fallback) in [
         ("windowMode", ["full", "mini"], "full"),
         ("privacyMode", ["visible", "hidden"], "hidden"),
+        ("displayMode", ["amount", "collection"], "collection"),
     ] {
         if let Some(field) = value.get(key) {
             if !field.as_str().is_some_and(|s| valid.contains(&s)) {
@@ -310,7 +318,31 @@ mod theme_tests {
         let data = parse_data(&legacy().to_string());
         assert_eq!(data.window_mode, WindowMode::Full);
         assert_eq!(data.privacy_mode, PrivacyMode::Visible);
+        assert_eq!(data.display_mode, DisplayMode::Amount);
         assert!(data.config_error.is_none());
+    }
+
+    #[test]
+    fn collection_roundtrips_independently_and_invalid_mode_fails_closed() {
+        let mut data = parse_data(&legacy().to_string());
+        data.display_mode = DisplayMode::Collection;
+        data.privacy_mode = PrivacyMode::Hidden;
+        data.window_mode = WindowMode::Mini;
+        data.selected_theme_id = Some("mibao".into());
+        let restored = parse_data(&serde_json::to_string(&data).unwrap());
+        assert_eq!(restored.display_mode, DisplayMode::Collection);
+        assert_eq!(restored.display().display_mode, DisplayMode::Collection);
+        assert_eq!(restored.privacy_mode, PrivacyMode::Hidden);
+        assert_eq!(restored.window_mode, WindowMode::Mini);
+        assert_eq!(restored.settings.unwrap().monthly_salary, 8800.0);
+        for invalid in [serde_json::json!(null),serde_json::json!("broken"),serde_json::json!(5)] {
+            let mut value = legacy(); value["displayMode"] = invalid;
+            let restored = parse_data(&value.to_string());
+            assert_eq!(restored.display_mode, DisplayMode::Collection);
+            assert_eq!(restored.privacy_mode, PrivacyMode::Hidden);
+            assert_eq!(restored.settings.unwrap().monthly_salary,8800.0);
+            assert!(restored.config_error.is_some());
+        }
     }
 
     #[test]

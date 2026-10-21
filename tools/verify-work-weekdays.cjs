@@ -39,7 +39,7 @@ async function main() {
         assert.match(await page.locator('.chibi-sleeping').getAttribute('src'), id === 'mibao' ? /mibao\/lunch/ : /chibi-girl-sleeping/);
       };
       await open();
-      assert.equal(await page.locator('form input').count(), 6);
+      assert.equal(await page.locator('form input:not([type="radio"])').count(), 6);
       assert.equal(await page.locator('.weekday-options [aria-pressed="true"]').count(), 5);
       assert.equal(await page.getByRole('button', { name: '周日', exact: true }).getAttribute('aria-pressed'), 'false');
       await page.getByRole('button', { name: '单休', exact: true }).click();

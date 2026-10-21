@@ -1,7 +1,7 @@
 mod config;
 mod display_window;
 
-use config::{persist, validate_settings, AppData, AppState, DisplayPreferences, PrivacyMode, SalarySettings, WindowMode};
+use config::{persist, validate_settings, AppData, AppState, DisplayMode, DisplayPreferences, PrivacyMode, SalarySettings, WindowMode};
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::sync::Mutex;
 use tauri::image::Image;
@@ -97,20 +97,21 @@ fn load_data(app: AppHandle) -> AppData {
 }
 
 #[tauri::command]
-fn save_settings(app: AppHandle, settings: SalarySettings) -> Result<(), String> {
+fn save_settings(app: AppHandle, settings: SalarySettings, display_mode: Option<DisplayMode>) -> Result<(), String> {
     validate_settings(&settings)?;
     {
         let state = app.state::<AppState>();
         let mut data = state.data.lock().map_err(|e| e.to_string())?;
         let mut updated = data.clone();
         updated.settings = Some(settings);
+        if let Some(mode) = display_mode { updated.display_mode = mode; }
         updated.config_error = None;
         persist(&updated)?;
         *data = updated;
     }
+    emit_display(&app);
     show_main(&app);
     app.emit_to("main", "settings-updated", ()).ok();
-    emit_display(&app);
     Ok(())
 }
 

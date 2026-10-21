@@ -40,10 +40,10 @@ async function prepare(page) {
 }
 
 async function checkLayout(page) {
-  assert.equal(await page.locator('form input').count(), 6);
+  assert.equal(await page.locator('form input:not([type="radio"])').count(), 6);
   const portrait = await page.locator('.settings-portrait').boundingBox();
-  assert.equal(portrait.width, 170);
-  assert.equal(portrait.height, 116);
+  assert.equal(portrait.width, 104);
+  assert.equal(portrait.height, 56);
   const title = await page.locator('.settings-head h1').boundingBox();
   assert.ok(portrait.y + portrait.height <= title.y, 'Character overlaps title');
   const save = await page.getByRole('button', { name: '保存设置' }).boundingBox();

@@ -4,7 +4,8 @@ import { invoke } from "../tauri";
 
 export type WindowMode = "full" | "mini";
 export type PrivacyMode = "visible" | "hidden";
-interface Preferences { windowMode: WindowMode; privacyMode: PrivacyMode }
+export type DisplayMode = "amount" | "collection";
+interface Preferences { windowMode: WindowMode; privacyMode: PrivacyMode; displayMode: DisplayMode }
 interface DisplayContextValue extends Preferences {
   ready: boolean;
   busy: boolean;
@@ -17,14 +18,14 @@ const Context = createContext<DisplayContextValue | null>(null);
 
 export function DisplayProvider({ children }: { children: ReactNode }) {
   // Fail closed until persistence has been read, including during cold startup.
-  const [preferences, setPreferences] = useState<Preferences>({ windowMode: "full", privacyMode: "hidden" });
+  const [preferences, setPreferences] = useState<Preferences>({ windowMode: "full", privacyMode: "hidden", displayMode: "amount" });
   const [ready, setReady] = useState(false), [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const mounted = useRef(false), revision = useRef(0), localHidden = useRef(false), saving = useRef(false);
   const accept = useCallback((value: Partial<Preferences>) => {
-    const mode = value.windowMode ?? "full", privacy = value.privacyMode ?? "visible";
-    if (!["full", "mini"].includes(mode) || !["visible", "hidden"].includes(privacy)) throw new Error("显示配置无效");
-    setPreferences({ windowMode: mode, privacyMode: localHidden.current ? "hidden" : privacy });
+    const mode = value.windowMode ?? "full", privacy = value.privacyMode ?? "visible", display = value.displayMode ?? "amount";
+    if (!["full", "mini"].includes(mode) || !["visible", "hidden"].includes(privacy) || !["amount", "collection"].includes(display)) throw new Error("显示配置无效");
+    setPreferences({ windowMode: mode, privacyMode: localHidden.current ? "hidden" : privacy, displayMode: display });
     setReady(true);
   }, []);
   const load = useCallback(async (attempt = 0) => {

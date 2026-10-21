@@ -1,0 +1,66 @@
+/* Keep the established porcelain card, character silhouette and native geometry. */
+.collection-mode .pet-card { padding-top: 52px; padding-bottom: 12px; }
+.collection { width: 100%; display: flex; flex-direction: column; align-items: center; pointer-events: none; color: var(--pet-ink); }
+.collection-scene { position: relative; width: 270px; height: 126px; }
+.collection-vessel { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); width: 166px; height: 136px; object-fit: contain; }
+.collection-fish .collection-vessel { width: 128px; height: 128px; }
+.collection-accent { position: absolute; right: 7px; bottom: 9px; width: 45px; height: 43px; object-fit: contain; opacity: .85; transform: rotate(8deg); }
+.collection-fish .collection-accent { width: 28px; height: 28px; right: 34px; bottom: 15px; }
+.collection-star { position: absolute; left: 36px; top: 21px; width: 25px; height: 31px; object-fit: contain; }
+.collection-description { width: 100%; }
+.collection-copy { font-size: 20px; line-height: 28px; font-weight: 700; white-space: nowrap; text-align: center; }
+.collection-fish .collection-copy { font-size: 19px; }
+.collection-meter { display: flex; align-items: center; justify-content: center; gap: 10px; height: 24px; }
+.collection-cells { display: flex; gap: 2px; align-items: center; }
+.collection-cell { display: block; width: 28px; height: 24px; object-fit: contain; opacity: .32; filter: saturate(.35); }
+.collection-cell.is-filled { opacity: 1; filter: none; }
+.collection-count { color: var(--pet-ink); font-size: 16px; line-height: 20px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.collection-feedback-lifetime { position: absolute; width: 0; height: 0; pointer-events: none; animation: collection-feedback 1000ms linear; }
+@keyframes collection-feedback { from { opacity: 0; } to { opacity: 0; } }
+.collection-mode .progress-area { margin-top: auto; }
+.collection-mode .progress-times { padding-top: 5px; border-top: 1px solid var(--skin-divider,#cfe4f8); }
+.collection-mode .time-item { font-size: 18px; gap: 6px; }
+.collection-mode .time-value { font-size: 21px; }
+.collection-mode .rest-day-summary { font-size: 18px; line-height: 24px; padding-top: 4px; }
+.collection-deposit { position: absolute; inset: 0; animation: collection-deposit 700ms ease-out both; }
+.collection-drop { position: absolute; top: -6px; left: 50%; width: 75px; height: 53px; object-fit: contain; transform: translateX(-20%) rotate(-18deg); }
+.collection-grains { position: absolute; top: 27px; left: 47%; width: 29px; height: 18px; object-fit: cover; object-position: top; animation: collection-rice-fall 700ms ease-in both; }
+.collection-fish .collection-drop { top: -3px; width: 41px; height: 27px; transform: translateX(-50%) rotate(-22deg); }
+.collection-fish .collection-deposit { animation-name: collection-fish-fall; }
+@keyframes collection-deposit { 0% { opacity: 0; transform: translate(15px,-12px) rotate(12deg); } 20% { opacity: 1; } 65% { opacity: 1; transform: translate(0,8px) rotate(-6deg); } 100% { opacity: 0; transform: translate(10px,-4px); } }
+@keyframes collection-rice-fall { 0%,25% { opacity: 0; transform: translateY(-8px); } 40% { opacity: 1; } 85%,100% { opacity: 0; transform: translateY(40px); } }
+@keyframes collection-fish-fall { 0% { opacity: 0; transform: translateY(-10px) rotate(-8deg); } 20% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; transform: translateY(77px) rotate(12deg); } }
+.collection-mode .mini-information { top: 35px; }
+.collection-mini { flex-direction: row; gap: 3px; height: 47px; }
+.collection-mini .collection-scene { width: 49px; height: 47px; flex-shrink: 0; }
+.collection-mini .collection-vessel { width: 51px; height: 48px; }
+.collection-mini.collection-fish .collection-vessel { width: 42px; height: 46px; }
+.collection-mini .collection-description { width: 76px; }
+.collection-mini .collection-copy { font-size: 9px; line-height: 14px; white-space: nowrap; text-align: left; font-weight: 600; }
+.collection-mini .collection-meter { justify-content: flex-start; gap: 3px; height: 19px; }
+.collection-mini .collection-meter-icon { width: 17px; height: 17px; object-fit: contain; }
+.collection-mini .collection-count { font-size: 12px; line-height: 17px; }
+.collection-mini .collection-star { left: 0; top: 2px; width: 9px; height: 12px; }
+.collection-mini .collection-drop { width: 28px; height: 21px; top: 0; }
+.collection-mini.collection-fish .collection-drop { width: 16px; height: 11px; }
+.collection-mini .collection-grains { width: 12px; height: 8px; top: 12px; }
+.collection-mini .collection-deposit { animation-name: collection-mini-drop; }
+@keyframes collection-mini-drop { 0% { opacity: 0; transform: translateY(-4px); } 25% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(15px); } }
+.display-mode-picker { padding: 0; border: 0; margin: 0 0 7px; min-width: 0; }
+.display-mode-picker legend { font-size: 12px; font-weight: 600; line-height: 18px; color: var(--skin-label,#48657e); }
+.display-mode-options { display: flex; gap: 6px; }
+.display-mode-options label { position: relative; flex: 1; cursor: pointer; }
+.display-mode-options input { position: absolute; opacity: 0; }
+.display-mode-options span { display: block; text-align: center; border: 1px solid var(--skin-input-border,#cfe6fb); border-radius: 9px; background: #fff; padding: 5px 8px; font-size: 12px; line-height: 17px; color: var(--ink); }
+.display-mode-options input:checked + span { border-color: var(--blue-deep); background: var(--porcelain-deep); color: var(--blue-deep); font-weight: 700; }
+.display-mode-options input:focus-visible + span { outline: 2px solid var(--blue-deep); outline-offset: 2px; }
+.display-mode-picker p { font-size: 10px; line-height: 15px; color: var(--skin-label,#48657e); margin-top: 3px; }
+/* Recover space for the new control inside the existing 400×600 settings window. */
+.salary-settings-card .settings-portrait { height: 56px; width: 104px; margin-bottom: 0; }
+.salary-settings-card .settings-head h1 { font-size: 17px; line-height: 22px; }
+.salary-settings-card .preview { padding: 6px 10px; margin-bottom: 8px; }
+@media (prefers-reduced-motion: reduce) {
+  .collection-deposit { display: none; animation: none; }
+  .collection-grains { animation: none; }
+  .collection-feedback-lifetime { animation: none; }
+}

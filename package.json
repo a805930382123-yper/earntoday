@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "build:exe": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/build-launcher.ps1",
-    "test": "node src/salary/calc.test.ts",
+    "test": "node src/salary/calc.test.ts && node src/collection/progress.test.ts",
     "tauri": "tauri"
   },
   "dependencies": {

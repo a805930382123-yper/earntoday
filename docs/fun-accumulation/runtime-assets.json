@@ -1,0 +1,722 @@
+[
+  {
+    "file": "src/assets/themes/blue-whale-girl/collection/bowl-back.webp",
+    "size": [
+      500,
+      440
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      12,
+      118,
+      481,
+      422
+    ],
+    "bytes": 105608,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/blue-whale-girl/collection/bowl-empty.webp",
+    "size": [
+      469,
+      304
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      0,
+      0,
+      469,
+      304
+    ],
+    "bytes": 102586,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/blue-whale-girl/collection/bowl-front.webp",
+    "size": [
+      500,
+      440
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      16,
+      223,
+      476,
+      422
+    ],
+    "bytes": 60814,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/blue-whale-girl/collection/bowl-full.webp",
+    "size": [
+      462,
+      398
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      0,
+      0,
+      462,
+      398
+    ],
+    "bytes": 145618,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/blue-whale-girl/collection/bowl-half.webp",
+    "size": [
+      442,
+      299
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      0,
+      0,
+      442,
+      299
+    ],
+    "bytes": 107698,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/blue-whale-girl/collection/rice-fill.webp",
+    "size": [
+      480,
+      425
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      28,
+      11,
+      461,
+      259
+    ],
+    "bytes": 77594,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/blue-whale-girl/collection/rice-spoon.webp",
+    "size": [
+      505,
+      305
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      0,
+      0,
+      505,
+      305
+    ],
+    "bytes": 78504,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/blue-whale-girl/collection/stage-0.webp",
+    "size": [
+      500,
+      440
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      12,
+      118,
+      481,
+      422
+    ],
+    "bytes": 105608,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/blue-whale-girl/collection/stage-1.webp",
+    "size": [
+      500,
+      440
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      12,
+      118,
+      481,
+      422
+    ],
+    "bytes": 108530,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/blue-whale-girl/collection/stage-10.webp",
+    "size": [
+      500,
+      440
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      12,
+      55,
+      481,
+      422
+    ],
+    "bytes": 132920,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/blue-whale-girl/collection/stage-2.webp",
+    "size": [
+      500,
+      440
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      12,
+      118,
+      481,
+      422
+    ],
+    "bytes": 109316,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/blue-whale-girl/collection/stage-3.webp",
+    "size": [
+      500,
+      440
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      12,
+      118,
+      481,
+      422
+    ],
+    "bytes": 111444,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/blue-whale-girl/collection/stage-4.webp",
+    "size": [
+      500,
+      440
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      12,
+      118,
+      481,
+      422
+    ],
+    "bytes": 112472,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/blue-whale-girl/collection/stage-5.webp",
+    "size": [
+      500,
+      440
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      12,
+      118,
+      481,
+      422
+    ],
+    "bytes": 114116,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/blue-whale-girl/collection/stage-6.webp",
+    "size": [
+      500,
+      440
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      12,
+      118,
+      481,
+      422
+    ],
+    "bytes": 118224,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/blue-whale-girl/collection/stage-7.webp",
+    "size": [
+      500,
+      440
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      12,
+      106,
+      481,
+      422
+    ],
+    "bytes": 119460,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/blue-whale-girl/collection/stage-8.webp",
+    "size": [
+      500,
+      440
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      12,
+      89,
+      481,
+      422
+    ],
+    "bytes": 123276,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/blue-whale-girl/collection/stage-9.webp",
+    "size": [
+      500,
+      440
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      12,
+      72,
+      481,
+      422
+    ],
+    "bytes": 127480,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/blue-whale-girl/collection/star.webp",
+    "size": [
+      86,
+      98
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      0,
+      0,
+      86,
+      98
+    ],
+    "bytes": 6404,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/blue-whale-girl/collection/whale.webp",
+    "size": [
+      411,
+      253
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      0,
+      0,
+      411,
+      253
+    ],
+    "bytes": 72824,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/mibao/collection/dried-fish.webp",
+    "size": [
+      252,
+      105
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      0,
+      0,
+      252,
+      105
+    ],
+    "bytes": 40912,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/mibao/collection/jar-empty.webp",
+    "size": [
+      417,
+      450
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      0,
+      0,
+      417,
+      450
+    ],
+    "bytes": 165662,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/mibao/collection/jar-full-reference.webp",
+    "size": [
+      434,
+      512
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      0,
+      0,
+      434,
+      512
+    ],
+    "bytes": 325322,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/mibao/collection/paw.webp",
+    "size": [
+      92,
+      93
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      0,
+      0,
+      92,
+      93
+    ],
+    "bytes": 9336,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/mibao/collection/stage-0.webp",
+    "size": [
+      500,
+      560
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      41,
+      70,
+      458,
+      520
+    ],
+    "bytes": 166200,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/mibao/collection/stage-1.webp",
+    "size": [
+      500,
+      560
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      41,
+      70,
+      458,
+      520
+    ],
+    "bytes": 178366,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/mibao/collection/stage-10.webp",
+    "size": [
+      500,
+      560
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      41,
+      70,
+      458,
+      520
+    ],
+    "bytes": 260608,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/mibao/collection/stage-2.webp",
+    "size": [
+      500,
+      560
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      41,
+      70,
+      458,
+      520
+    ],
+    "bytes": 189666,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/mibao/collection/stage-3.webp",
+    "size": [
+      500,
+      560
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      41,
+      70,
+      458,
+      520
+    ],
+    "bytes": 198498,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/mibao/collection/stage-4.webp",
+    "size": [
+      500,
+      560
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      41,
+      70,
+      458,
+      520
+    ],
+    "bytes": 205626,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/mibao/collection/stage-5.webp",
+    "size": [
+      500,
+      560
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      41,
+      70,
+      458,
+      520
+    ],
+    "bytes": 211928,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/mibao/collection/stage-6.webp",
+    "size": [
+      500,
+      560
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      41,
+      70,
+      458,
+      520
+    ],
+    "bytes": 219420,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/mibao/collection/stage-7.webp",
+    "size": [
+      500,
+      560
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      41,
+      70,
+      458,
+      520
+    ],
+    "bytes": 231566,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/mibao/collection/stage-8.webp",
+    "size": [
+      500,
+      560
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      41,
+      70,
+      458,
+      520
+    ],
+    "bytes": 240236,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/mibao/collection/stage-9.webp",
+    "size": [
+      500,
+      560
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      41,
+      70,
+      458,
+      520
+    ],
+    "bytes": 255870,
+    "format": "WEBP"
+  },
+  {
+    "file": "src/assets/themes/mibao/collection/star.webp",
+    "size": [
+      81,
+      120
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "bounds": [
+      0,
+      0,
+      81,
+      120
+    ],
+    "bytes": 9218,
+    "format": "WEBP"
+  }
+]

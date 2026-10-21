@@ -9,6 +9,9 @@ import { useTheme } from "../themes/ThemeProvider";
 import { useDisplay } from "../display/DisplayProvider";
 import { DisplayControls, LockIcon } from "./DisplayControls";
 import { MiniWidget } from "./MiniWidget";
+import { Collection } from "./Collection";
+import { collectionStage } from "../collection/progress";
+import { useCollection } from "../collection/useCollection";
 import {
   DEFAULT_SETTINGS,
   earnedAmount,
@@ -105,8 +108,9 @@ const HourglassIcon = () => (
 
 export function Widget() {
   const { theme } = useTheme();
-  const { windowMode, privacyMode, ready, error, reload } = useDisplay();
+  const { windowMode, privacyMode, displayMode, ready, error, reload } = useDisplay();
   const hidden = privacyMode === "hidden";
+  const collection = displayMode === "collection" && !hidden;
   const [settings, setSettings] = useState<SalarySettings | null>(null);
   const [now, setNow] = useState(() => new Date());
   const [celebrate, setCelebrate] = useState(false);
@@ -138,6 +142,10 @@ export function Widget() {
   const worked = settings ? formatDuration(effectiveWorkedMinutes(now, s)) : "0m";
   const remaining = settings ? formatDuration(minutesUntilOffWork(now, s)) : "--";
   const dayKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+  const stage = collectionStage(progress, state);
+  const deposit = useCollection({ stage, state, time: now.getTime(), day: dayKey,
+    scope: JSON.stringify([theme.id, windowMode, displayMode, privacyMode, settings]),
+    enabled: ready && collection && !!settings && (state === "working" || state === "after") });
 
   useEffect(() => {
     if (state !== "after") {
@@ -166,11 +174,11 @@ export function Widget() {
     }
   }, []);
 
-  if (!ready) return <div className="display-loading card" role="status"><span>¥ ••••••</span><p>{error ? "显示设置读取失败，金额暂不显示。" : "正在读取显示设置…"}</p>{error && <button type="button" className="display-retry" onClick={reload}>重新读取</button>}<button type="button" className="display-retry" onClick={() => invoke("open_settings").catch(console.error)}>打开设置</button></div>;
-  if (windowMode === "mini") return <MiniWidget state={state} mood={MOOD[state]} moneyText={moneyText} status={theme.stateLabels?.[state] ?? STATUS_TEXT[state]} onDragEnd={handleDragEnd} interaction={interaction} />;
+  if (!ready) return <div className="display-loading card" role="status"><span>••••••</span><p>{error ? "显示设置读取失败，内容暂不显示。" : "正在读取显示设置…"}</p>{error && <button type="button" className="display-retry" onClick={reload}>重新读取</button>}<button type="button" className="display-retry" onClick={() => invoke("open_settings").catch(console.error)}>打开设置</button></div>;
+  if (windowMode === "mini") return <MiniWidget state={state} mood={MOOD[state]} moneyText={moneyText} status={theme.stateLabels?.[state] ?? STATUS_TEXT[state]} onDragEnd={handleDragEnd} interaction={interaction} stage={stage} deposit={deposit} />;
 
   return (
-    <div className={`widget-stage state-${state}${hidden ? " privacy-hidden" : ""}`} data-work-state={state} data-window-mode="full" onContextMenu={(e) => e.preventDefault()}>
+    <div className={`widget-stage state-${state}${hidden ? " privacy-hidden" : ""}${collection ? " collection-mode" : ""}`} data-work-state={state} data-window-mode="full" onContextMenu={(e) => e.preventDefault()}>
       {/* 全窗口拖动层（按钮在其上方，互不干扰） */}
       <div className="drag-overlay" data-tauri-drag-region onMouseUp={handleDragEnd} />
 
@@ -214,30 +222,30 @@ export function Widget() {
           </button>
         </div>
 
-        <div className="money-label">
+        {collection ? <Collection stage={stage} state={state} pulse={deposit.pulse} onAnimationEnd={deposit.finish} interacting={!!interaction.active} /> : <><div className="money-label">
           <MoneyBagIcon />
           <span>今天已经赚到</span>
         </div>
         <div className={`amount${hidden ? " masked-amount" : moneyText.length > 8 ? " amount-compact" : ""}`} aria-label={hidden ? "收入已隐藏" : undefined}>
           <span className="currency">¥</span>
           {hidden ? <span className="privacy-mask">••••••</span> : <>{intPart.int}<span className="decimals">.{dec}</span></>}
-        </div>
+        </div></>}
 
-        <div className={`status-row${state === "after" ? " completion-badge" : ""}`}>
+        {!collection && <div className={`status-row${state === "after" ? " completion-badge" : ""}`}>
           {state === "after" ? <CheckIcon /> : state === "lunch" || state === "rest_day" ? <CoffeeIcon /> : <StatusChartIcon />}
           {state === "lunch" || state === "after" || state === "rest_day" ? null : <span className={`status-dot status-${state}`} />}
           <span className="status-text">{theme.stateLabels?.[state] ?? STATUS_TEXT[state]}</span>
           {hidden && <span className="privacy-caption"><LockIcon />收入已隐藏</span>}
           <span className="status-zzz" aria-hidden="true">z z Z</span>
-        </div>
+        </div>}
 
         {state === "rest_day" ? <p className="rest-day-summary">今天不用赶时间，好好休息吧</p> : <div className="progress-area">
-          <div className="progress-track">
+          {!collection && <div className="progress-track">
             <div className="progress-bar" role="progressbar" aria-label="今日有效工作进度" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)}>
               <div className="progress-fill" style={{ width: `${(progress * 100).toFixed(2)}%` }} />
             </div>
             {state === "after" && <span className="progress-percent">100%</span>}
-          </div>
+          </div>}
           <div className="progress-times">
             <span className="time-item">
               <ClockIcon />
@@ -254,7 +262,7 @@ export function Widget() {
         </div>}
       </div>
       {state === "after" && (
-        <div className={`after-work-note${celebrate ? " note-enter" : ""}`} role="status">
+        <div className={`after-work-note${celebrate && !collection ? " note-enter" : ""}`} role="status">
           <CatIcon />
           <span>下班！又是美好的一天</span>
           <span className="note-heart" aria-hidden="true">{theme.decorations.noteSymbol}</span>
