@@ -1,6 +1,6 @@
 # 自动更新与旧版配置保护交付记录
 
-状态：代码接入完成；**尚未达到正式分发条件**。没有生成生产签名私钥、没有配置 GitHub Secrets、没有发布新版 Release。下述构建与单元测试不能代替真实升级验收。
+状态：代码接入及真实旧版覆盖自动化验收完成；**尚未达到正式分发条件**。没有生成生产签名私钥、没有配置 GitHub Secrets、没有发布新版 Release。下述构建与单元测试不能代替真实升级验收。
 
 ## 1. 旧版审计
 
@@ -11,7 +11,7 @@
 - 产品资源：`今天又赚了多少` / `0.2.0`；二进制含 `NullsoftInst`，确认是 NSIS 安装器，不是独立应用 EXE。
 - 对照发布提交 `1f6c5416e3684f9de4f566c471b4c59001dc73b2` 的配置和存储代码：identifier `com.fishearn.today`，productName `今天又赚了多少`，Rust 主程序 `earn-today.exe`。这些身份保持不变。
 - 旧配置只指定 NSIS，未指定自定义 NSIS 模板、钩子或安装范围。原生成模板为 `currentUser` / `RequestExecutionLevel user`；默认位置 `%LOCALAPPDATA%\今天又赚了多少`，已有安装路径从注册表恢复。新版本显式固定相同的 `currentUser`，不改为全机安装。
-- 相关键：`HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\今天又赚了多少` 和 `HKCU\Software\fishearn\今天又赚了多少`。实际旧包安装后的注册表、入口是否重复仍须在干净环境验证，不能以模板推断代替。
+- 相关键：`HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\今天又赚了多少` 和 `HKCU\Software\fishearn\今天又赚了多少`。隔离 Windows runner 已验证原默认安装目录可覆盖，升级后该用户卸载记录只有一个；开始菜单/桌面入口的人工视觉验收仍待完成。
 - 旧版 WebView2 使用 `%LOCALAPPDATA%\earn-today\webview-sessions\{pid}-{timestamp}` 并启用 incognito，这是已有实现，本轮不改。
 - 设置实际采用 **Rust JSON 文件**，不使用 localStorage / Tauri Store。WebView2 缓存不承载工资设置，无需迁移其数据目录。
 - 原工作流在 main/工作流文件推送时可能直接发布。已去掉 push 触发，仅允许人工运行，不会因为推送本次代码而向试用用户发新版。
@@ -108,13 +108,15 @@ GitHub 建议另建 `updater-release` Environment，配置发布审批人/受保
 
 `prepare-release.mjs` 会以公钥验证真实包的 Minisign payload 签名及可信注释签名，版本不一致/签名错误直接阻止打包元数据。CLI 最低版本固定到支持版本绑定的 2.12.1 范围；发布依赖使用 lockfile。
 
-## 7. 真实升级验收步骤（仍待执行）
+## 7. 真实升级验收结果与待执行步骤
 
 ### A：v0.2.0 覆盖安装
 
 工作流中的 `verify-upgrade.mjs` **仅允许全新 GitHub Windows runner**，发现现有配置或安装立即停止。它安装已核验的原版 NSIS，调用旧版真实保存命令写入非默认工资/工作日/时段/咪宝/迷你/隐藏数据，保存旧配置快照，再安装新版并核对原字段和新增字段默认值，验证新版创建备份及图片加载。测试文件全部为合成数据。
 
-人工还需确认：原安装目录、注册表安装记录只有一个、开始菜单/桌面入口没有重复、托盘正常、拖拽置顶/透明窗、两个皮肤、完整/迷你、隐私、午休/下班、趣味积累和桌宠点击互动。机器目前无 Windows Sandbox，未为了这项测试修改当前用户的真实安装或配置。
+人工还需确认：原安装目录、注册表安装记录只有一个、开始菜单/桌面入口没有重复、托盘正常、拖拽置顶/透明窗、两个皮肤、完整/迷你、隐私、午休/下班、趣味积累和桌宠点击互动。机器目前无 Windows Sandbox，未为了这项测试修改当前用户的真实安装或配置。另增只读权限的 `validate-upgrade.yml`，推送配置保护代码时用一次性 CI 密钥进行隔离覆盖测试；不使用生产 Secrets、不上传测试安装包、不创建 Release。[隔离验收运行记录](https://github.com/a805930382123-yper/earntoday/actions/runs/39710729349)。
+
+自动化结果（2026-10-22）：工作流全部成功，实际从 **0.2.0 → 0.3.0** 覆盖安装。测试旧月薪 16789.25、每月 21 天、自定义星期 [0,2,4,6]、非默认上下班与午休时段、咪宝、迷你和隐藏收入。旧配置 8 个顶层字段及嵌套内容逐项匹配，新增 displayMode 默认 amount，单用户卸载记录数为 1，新版备份可用，角色图片全部加载。签名 NSIS 构建及 payload / 可信版本签名验证也通过。此验收使用一次性测试密钥，没有上传安装包或创建 Release。
 
 ### B：应用内签名更新
 
@@ -147,9 +149,9 @@ GitHub 建议另建 `updater-release` Environment，配置发布审批人/受保
 - 已核验真实 v0.2.0 安装包哈希、NSIS 格式、发布提交的存储路径和配置身份。
 - 已通过 40 项原有前端工资/趣味积累测试、1 项新增发布签名校验测试和 18 项原生配置/窗口/保护与恢复测试；生产前端构建通过。
 - 400×600 设置窗口的模拟桥接验收通过：启动仅检查一次、稍后不安装、未保存编辑时禁止安装、下载百分比、无更新/网络错误提示、备份二次确认与无效备份禁用。这里模拟了原生更新后端，不是实际升级测试。
-- 真实 A：**尚未执行**，CI 脚本已准备，不等于 CI 已运行。
-- 真实 B：**尚未执行**，缺生产/测试签名密钥和高版本签名 Release。
+- 真实 A 的自动化覆盖部分：**已通过**，见上方实际运行记录。窗口/托盘创建及图片加载由运行验证；托盘点击、双主题各状态、桌面入口等人工体验检查仍待完成。
+- 真实 B：**尚未执行**。一次性 CI 密钥只用于隔离覆盖测试；仍需你控制并备份的生产签名身份、Secrets，以及专用高版本测试 Release，才能完成发布准备和应用内升级验收。
 - C 的配置异常与发布侧签名篡改单元测试已覆盖；实际断网/下载中断/错签安装/首次重启仍需 VM 验证。
 - 生产签名公钥、Secrets、签名安装包、`.sig`、公开 latest.json：**尚未配置或发布**。当前代码不得作为“用户已能自动更新”交付给试用用户。
 
-新增主要文件：`src-tauri/src/config_storage.rs`、`src-tauri/src/updater.rs`、`src/update/*`、`tools/prepare-updater.mjs`、`tools/prepare-release.mjs`、`tools/native-test-session.mjs`、`tools/verify-upgrade.mjs`、发布工具测试及本说明；增量修改持久化、命令注册、设置页、版本源、capabilities 说明和已有发布工作流。
+新增主要文件：`src-tauri/src/config_storage.rs`、`src-tauri/src/updater.rs`、`src/update/*`、`tools/prepare-updater.mjs`、`tools/prepare-release.mjs`、`tools/native-test-session.mjs`、`tools/verify-upgrade.mjs`、隔离验收工作流、发布工具测试及本说明；增量修改持久化、命令注册、设置页、版本源、capabilities 说明和已有发布工作流。
