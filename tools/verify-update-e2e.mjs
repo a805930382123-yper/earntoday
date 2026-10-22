@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFile, writeFile, access, readdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { spawn, spawnSync } from "node:child_process";
-import { createServer } from "node:https";
+import { startHttpsFixture } from "./updater-https-fixture.mjs";
 import { openNative, pause } from "./native-test-session.mjs";
 
 assert.equal(process.env.GITHUB_ACTIONS, "true");
@@ -34,23 +34,19 @@ const config = async () => JSON.parse(await readFile(configPath, "utf8"));
 const preferenceKeys = ["settings", "selectedThemeId", "windowMode", "privacyMode", "displayMode", "fullPosition", "positionScale", "fullPositionScale"];
 const preferences = data => Object.fromEntries(preferenceKeys.map(k => [k, data[k]]));
 const safeInvoke = (app, command, args = {}, timeoutMs = 45000) => app.evaluate(`window.__TAURI_INTERNALS__.invoke(${JSON.stringify(command)},${JSON.stringify(args)}).then(value=>({ok:true,value}),error=>({ok:false,error:String(error)}))`, timeoutMs);
-let app; let baseline; let server; const passed = []; const observedPhases = [];
+let app; let baseline; let fixture; const passed = []; const observedPhases = [];
 const recordPass = name => { passed.push(name); console.log(`PASS ${name}`); };
 const assertPreserved = async () => assert.deepEqual(preferences(await config()), preferences(baseline), "User preferences changed after update failure/restart");
 const normal = JSON.parse(await readFile("release-assets/latest.json", "utf8"));
 const publishManifest = async (data, label) => {
-  await writeFile("artifacts/update-e2e/latest.json", typeof data === "string" ? data : JSON.stringify(data));
-  const args = ["release", "upload", ctx.tag, "artifacts/update-e2e/latest.json", "--clobber", "--repo", process.env.GITHUB_REPOSITORY];
-  // Metadata is test-only and the release is a prerelease, never Latest.
-  const result = spawnSync("gh", args, { windowsHide: true, encoding: "utf8", env: { ...process.env } });
-  assert.equal(result.status, 0, `Cannot publish test manifest (${label}): ${result.stderr}`);
-  await pause(1500);
+  // Only negative cases use the local trusted HTTPS fixture through a per-process proxy.
+  // The real GitHub prerelease metadata is immutable and is used for the actual UI upgrade.
+  fixture.setManifest(data);
+  console.log(`Fixture: ${label}`);
 };
 const waitCheck = async (predicate, label) => {
   let last;
-  // GitHub's download redirect can retain the replaced asset for several minutes.
-  // Never install until the native updater has seen this case's distinct marker.
-  for (let i = 0; i < 144; i++) {
+  for (let i = 0; i < 24; i++) {
     const result = await safeInvoke(app, "check_update");
     last = result;
     if (predicate(result)) return result;
@@ -74,7 +70,17 @@ try {
   app = await openNative(installed, { HTTP_PROXY: "http://127.0.0.1:9", HTTPS_PROXY: "http://127.0.0.1:9", ALL_PROXY: "http://127.0.0.1:9", NO_PROXY: "" });
   await waitCheck(r => !r.ok && r.error.includes("无法连接"), "unreachable network");
   await assertPreserved(); recordPass("native-network-unavailable-proxy"); await app.stop();
-  app = await openNative(installed); await pause(1800);
+
+  // The disposable runner trusts only this run's fixture certificate. Production TLS
+  // checks remain enabled. CONNECT forwards this app's requests to the fixture server;
+  // no system proxy/DNS changes and no interception of other processes take place.
+  const pfx = await readFile(process.env.E2E_TLS_PFX);
+  const payload = await readFile(join("release-assets", (await readdir("release-assets")).find(p => p.endsWith("-setup.exe"))));
+  fixture = await startHttpsFixture({ pfx, passphrase: process.env.E2E_TLS_PASSWORD, payload });
+  const proxyUrl = fixture.proxyUrl;
+  await publishManifest("{invalid-json", "invalid source");
+  app = await openNative(installed, { HTTP_PROXY: proxyUrl, HTTPS_PROXY: proxyUrl, ALL_PROXY: proxyUrl, NO_PROXY: "" });
+  await pause(1800);
 
   await publishManifest("{invalid-json", "invalid source");
   await waitCheck(r => !r.ok && r.error.includes("无法连接"), "invalid source");
@@ -99,39 +105,35 @@ try {
   assert.equal(productVersion(), ctx.lowVersion); assert.equal(app.child.exitCode, null);
   await assertPreserved(); recordPass("real-installer-signature-rejected");
 
-  // A locally trusted HTTPS server disconnects before Content-Length is fulfilled.
-  // TLS verification remains enabled; only the disposable runner trusts this certificate.
-  const pfx = await readFile(process.env.E2E_TLS_PFX);
-  const payload = await readFile(join("release-assets", (await readdir("release-assets")).find(p => p.endsWith("-setup.exe"))));
-  let chunksSent = 0;
-  server = createServer({ pfx, passphrase: process.env.E2E_TLS_PASSWORD }, (req, response) => {
-    response.writeHead(200, { "Content-Type": "application/octet-stream", "Content-Length": payload.length });
-    response.write(payload.subarray(0, 512 * 1024)); chunksSent++;
-    setTimeout(() => response.destroy(), 300);
-  });
-  await new Promise(resolveListen => server.listen(0, resolveListen));
+  // Disconnect after real HTTPS body bytes arrive and before Content-Length is met.
   const interrupted = structuredClone(normal); interrupted.notes = "e2e-disconnected-download";
-  interrupted.platforms["windows-x86_64"].url = `https://localhost:${server.address().port}/interrupted.exe`;
+  interrupted.platforms["windows-x86_64"].url += "?interrupted=1";
   await publishManifest(interrupted, "interrupted download");
   await waitCheck(r => r.ok && r.value?.notes === interrupted.notes, "interrupted download marker");
   const incomplete = await safeInvoke(app, "install_update", {}, 120000);
-  assert.ok(chunksSent > 0, "HTTPS transfer never started; not a download-interruption test");
+  assert.ok(fixture.chunksSent > 0, "HTTPS transfer never started; not a download-interruption test");
   assert.ok(!incomplete.ok && incomplete.error.includes("下载"));
   assert.equal(productVersion(), ctx.lowVersion); assert.equal(app.child.exitCode, null);
   await assertPreserved(); recordPass("real-https-download-interruption");
-  await new Promise(resolveClose => server.close(resolveClose)); server = undefined;
+  await app.stop();
+  await fixture.stop(); fixture = undefined;
 
-  const valid = structuredClone(normal); valid.notes = "e2e-valid-upgrade";
-  await publishManifest(valid, "valid upgrade");
-  await waitCheck(r => r.ok && r.value?.notes === valid.notes, "valid upgrade marker");
+  // Fresh process without the fixture proxy: real GitHub HTTPS metadata + installer.
+  app = await openNative(installed);
   await app.invoke("open_settings");
-  const click = text => app.evaluate(`(()=>{const b=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===${JSON.stringify(text)}&&!b.disabled);if(!b)return false;b.click();return true})()`);
+  const click = async text => {
+    for (let i = 0; i < 80; i++) {
+      if (await app.evaluate(`(()=>{const b=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===${JSON.stringify(text)}&&!b.disabled);if(!b)return false;b.click();return true})()`)) return true;
+      await pause(500);
+    }
+    return false;
+  };
   const waitText = async text => { for (let i = 0; i < 80; i++) { if (await app.evaluate(`document.body.textContent.includes(${JSON.stringify(text)})`)) return; await pause(500); } throw new Error(`UI missing: ${text}`); };
-  assert.ok(await click("检查更新")); await waitText("e2e-valid-upgrade");
+  assert.ok(await click("检查更新")); await waitText(`发现新版本 ${ctx.highVersion}`);
   assert.ok(await click("稍后再说")); await pause(800);
   assert.equal(productVersion(), ctx.lowVersion); assert.equal(app.child.exitCode, null);
   await assertPreserved(); recordPass("real-ui-later-does-not-install");
-  assert.ok(await click("检查更新")); await waitText("e2e-valid-upgrade");
+  assert.ok(await click("检查更新")); await waitText(`发现新版本 ${ctx.highVersion}`);
   app.on("Runtime.bindingCalled", event => { if (event.name === "__e2ePhase") observedPhases.push(event.payload); });
   await app.send("Runtime.enable"); await app.send("Runtime.addBinding", { name: "__e2ePhase" });
   await app.evaluate("window.__TAURI__.event.listen('update-progress',e=>window.__e2ePhase(e.payload.phase))");
@@ -176,6 +178,6 @@ try {
   await writeFile("artifacts/update-e2e/result.json", JSON.stringify(result, null, 2));
   console.log(JSON.stringify(result));
 } finally {
-  await app?.stop(); if (server) await new Promise(resolveClose => server.close(resolveClose));
+  await app?.stop(); await fixture?.stop();
   stopInstalledCopies();
 }

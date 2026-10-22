@@ -76,7 +76,7 @@ jobs:
         run: |
           $tlsPassword = [Guid]::NewGuid().ToString('N')
           Write-Output "::add-mask::$tlsPassword"
-          $cert = New-SelfSignedCertificate -DnsName localhost -CertStoreLocation Cert:\CurrentUser\My -KeyExportPolicy Exportable -KeyProtection None -Provider 'Microsoft Software Key Storage Provider' -KeyAlgorithm RSA -KeyLength 2048 -HashAlgorithm SHA256 -NotAfter (Get-Date).AddDays(1)
+          $cert = New-SelfSignedCertificate -DnsName localhost,github.com -CertStoreLocation Cert:\CurrentUser\My -KeyExportPolicy Exportable -KeyProtection None -Provider 'Microsoft Software Key Storage Provider' -KeyAlgorithm RSA -KeyLength 2048 -HashAlgorithm SHA256 -NotAfter (Get-Date).AddDays(1)
           $pfx = Join-Path $env:RUNNER_TEMP 'updater-https-fixture.pfx'
           $cer = Join-Path $env:RUNNER_TEMP 'updater-https-fixture.cer'
           Export-PfxCertificate -Cert $cert -FilePath $pfx -Password (ConvertTo-SecureString $tlsPassword -AsPlainText -Force) -CryptoAlgorithmOption AES256_SHA256 | Out-Null

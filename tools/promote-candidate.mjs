@@ -31,7 +31,7 @@ assert.equal(validation.path, ".github/workflows/validate-update-e2e.yml");
 // These are the only non-product changes permitted between tested builds and publication.
 const isEvidenceOnly = path => path === "README.md" || path === "docs/updater.md" ||
   /^\.github\/workflows\/(validate-update-e2e|promote-candidate)\.yml$/.test(path) ||
-  /^tools\/(native-test-session|prepare-update-e2e|verify-update-e2e|promote-candidate)\.mjs$/.test(path);
+  /^tools\/(native-test-session|prepare-update-e2e|verify-update-e2e|updater-https-fixture|promote-candidate)\.mjs$/.test(path);
 for (const head of [validation.head_sha, process.env.GITHUB_SHA]) {
   const comparison = await api(`compare/${candidate.head_sha}...${head}`);
   assert.ok(["ahead", "identical"].includes(comparison.status), "Candidate is not an ancestor of the verified source");
