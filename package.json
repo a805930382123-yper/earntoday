@@ -1,13 +1,13 @@
 {
   "name": "earn-today",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "build:exe": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/build-launcher.ps1",
-    "test": "node src/salary/calc.test.ts && node src/collection/progress.test.ts",
+    "test": "node src/salary/calc.test.ts && node src/collection/progress.test.ts && node tools/prepare-release.test.mjs",
     "tauri": "tauri"
   },
   "dependencies": {
@@ -16,7 +16,7 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2.9.0",
+    "@tauri-apps/cli": "^2.12.1",
     "@types/node": "^24.19.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",

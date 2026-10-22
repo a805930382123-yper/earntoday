@@ -1,5 +1,7 @@
 mod config;
 mod display_window;
+mod config_storage;
+mod updater;
 
 use config::{persist, validate_settings, AppData, AppState, DisplayMode, DisplayPreferences, PrivacyMode, SalarySettings, WindowMode};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -97,12 +99,17 @@ fn load_data(app: AppHandle) -> AppData {
 }
 
 #[tauri::command]
-fn save_settings(app: AppHandle, settings: SalarySettings, display_mode: Option<DisplayMode>) -> Result<(), String> {
+fn save_settings(app: AppHandle, mut settings: SalarySettings, display_mode: Option<DisplayMode>) -> Result<(), String> {
     validate_settings(&settings)?;
     {
         let state = app.state::<AppState>();
         let mut data = state.data.lock().map_err(|e| e.to_string())?;
         let mut updated = data.clone();
+        if let Some(previous) = &data.settings {
+            let mut extra = previous.extra.clone();
+            extra.extend(settings.extra);
+            settings.extra = extra;
+        }
         updated.settings = Some(settings);
         if let Some(mode) = display_mode { updated.display_mode = mode; }
         updated.config_error = None;
@@ -233,6 +240,8 @@ pub fn run() {
         .unwrap_or(false);
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .manage(updater::UpdateState::default())
         .manage(AppState {
             data: Mutex::new(data),
             settings_open: Mutex::new(true),
@@ -246,7 +255,12 @@ pub fn run() {
             set_privacy_mode,
             open_settings,
             hide_main,
-            hide_settings
+            hide_settings,
+            updater::check_update,
+            updater::install_update,
+            updater::list_config_backups,
+            updater::create_config_backup,
+            updater::restore_config_backup
         ])
         .setup(move |app| {
             let handle = app.handle().clone();

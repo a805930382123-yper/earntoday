@@ -1,0 +1,65 @@
+name: Isolated Windows upgrade validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/validate-upgrade.yml'
+      - 'src-tauri/src/config*.rs'
+      - 'src-tauri/src/updater.rs'
+      - 'tools/verify-upgrade.mjs'
+
+# Synthetic data and an ephemeral test key only; no production secrets or releases.
+permissions:
+  contents: read
+
+jobs:
+  old-installer-upgrade:
+    runs-on: windows-2022
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install and verify
+        run: |
+          npm ci
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm test
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run build
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo test --locked --lib --manifest-path src-tauri/Cargo.toml
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Generate disposable CI signing identity
+        run: |
+          $keyPath = Join-Path $env:RUNNER_TEMP 'ci-only-updater.key'
+          npm run tauri -- signer generate --ci -w $keyPath *> "$env:RUNNER_TEMP/ci-keygen.log"
+          if ($LASTEXITCODE -ne 0) { throw 'Test key generation failed (private output not printed)' }
+          $public = (Get-Content "$keyPath.pub" -Raw).Trim()
+          "TAURI_UPDATER_PUBLIC_KEY=$public" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+          "TAURI_SIGNING_PRIVATE_KEY=$keyPath" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+      - name: Build test-only signed installer
+        env:
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ''
+        run: |
+          node tools/prepare-updater.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run tauri -- build --bundles nsis --ci --config src-tauri/tauri.updater.generated.json -- --locked
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tools/prepare-release.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Install real old release and verify overwrite
+        run: |
+          Invoke-WebRequest 'https://github.com/a805930382123-yper/earntoday/releases/download/v0.2.0/EarnToday_0.2.0_x64-setup.exe' -OutFile "$env:RUNNER_TEMP/old-0.2.0.exe"
+          $installer = @(Get-ChildItem 'release-assets/*-setup.exe')
+          if ($installer.Count -ne 1) { throw 'Expected one test installer' }
+          node tools/verify-upgrade.mjs "$env:RUNNER_TEMP/old-0.2.0.exe" $installer[0].FullName
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      # Deliberately no artifact upload: this identity must never reach trial users.

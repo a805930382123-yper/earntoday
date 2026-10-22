@@ -1,14 +1,17 @@
-name: Windows installer release
+name: Windows signed updater release
 
+# A push must never publish a version to existing users.
 on:
-  push:
-    branches: [main]
-    tags: ['v*']
-    paths: ['.github/workflows/release.yml']
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Output (candidate only until real upgrade tests have passed)
+        type: choice
+        options: [candidate, prerelease]
+        default: candidate
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: windows-release
@@ -17,70 +20,84 @@ concurrency:
 jobs:
   windows:
     runs-on: windows-2022
-    timeout-minutes: 45
+    timeout-minutes: 60
     defaults:
       run:
         shell: pwsh
+    env:
+      TAURI_UPDATER_PUBLIC_KEY: ${{ vars.TAURI_UPDATER_PUBLIC_KEY }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
           cache: npm
-      - name: Install dependencies and verify salary calculations
+      - name: Install dependencies and test existing calculations
         run: |
           npm ci
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           npm test
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Verify native configuration and window calculations
-        run: |
           npm run build
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cargo test --locked --lib --manifest-path src-tauri/Cargo.toml
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Build Windows installer
+      - name: Prepare signed build (fail closed without secrets)
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         run: |
-          npm run tauri -- build --bundles nsis --ci -- --locked
+          if ([string]::IsNullOrWhiteSpace($env:TAURI_SIGNING_PRIVATE_KEY)) { throw 'Configure TAURI_SIGNING_PRIVATE_KEY first; do not publish unsigned updater builds' }
+          node tools/prepare-updater.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Verify installation and embedded app
+      - name: Build and sign Windows NSIS installer
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
-          $installer = @(Get-ChildItem src-tauri/target/release/bundle/nsis/*-setup.exe)
-          if ($installer.Count -ne 1) { throw 'Expected exactly one Windows installer' }
-          $installDir = Join-Path $env:RUNNER_TEMP 'earntoday-install-smoke'
-          $process = Start-Process -FilePath $installer[0].FullName -ArgumentList @('/S', "/D=$installDir") -WindowStyle Hidden -Wait -PassThru
-          if ($process.ExitCode -ne 0) { throw "Installer exited with $($process.ExitCode)" }
-          node tools/verify-installer.mjs "$installDir/earn-today.exe" src-tauri/target/release/earn-today.exe
+          npm run tauri -- build --bundles nsis --ci --config src-tauri/tauri.updater.generated.json -- --locked
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Prepare download and checksum
+          node tools/prepare-release.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify actual v0.2.0 upgrade in a fresh Windows runner
         run: |
-          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
-          $tag = "v$version"
-          if ($env:GITHUB_REF_TYPE -eq 'tag' -and $env:GITHUB_REF_NAME -ne $tag) { throw 'Tag and project version do not match' }
-          $asset = "EarnToday_${version}_x64-setup.exe"
-          New-Item -ItemType Directory -Path release-assets -Force | Out-Null
-          Copy-Item (Get-ChildItem src-tauri/target/release/bundle/nsis/*-setup.exe).FullName "release-assets/$asset"
-          $hash = (Get-FileHash "release-assets/$asset" -Algorithm SHA256).Hash.ToLowerInvariant()
-          "$hash  $asset" | Set-Content "release-assets/$asset.sha256" -Encoding utf8NoBOM
-          "RELEASE_TAG=$tag" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
-          "RELEASE_ASSET=$asset" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
-          @"
-          Windows 64 位安装版，下载 $asset 后双击安装，从开始菜单打开「今天又赚了多少」。无需 Node.js、Rust、开发服务器或项目源码。
+          Invoke-WebRequest 'https://github.com/a805930382123-yper/earntoday/releases/download/v0.2.0/EarnToday_0.2.0_x64-setup.exe' -OutFile "$env:RUNNER_TEMP/old-0.2.0.exe"
+          $hash = (Get-FileHash "$env:RUNNER_TEMP/old-0.2.0.exe" -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($hash -ne '78386390e755b6eac3e878dc4ab5552fe5ffd7067e9809a2b2816769330c640c') { throw 'Old installer hash mismatch' }
+          $installer = @(Get-ChildItem "release-assets/*-setup.exe")
+          if ($installer.Count -ne 1) { throw 'Expected one current installer' }
+          node tools/verify-upgrade.mjs "$env:RUNNER_TEMP/old-0.2.0.exe" $installer[0].FullName
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: signed-windows-candidate
+          path: release-assets/
+          if-no-files-found: error
+          retention-days: 14
 
-          包含蓝色大肥鱼 / 咪宝主题、工资实时计算、迷你模式、隐私隐藏及桌宠互动。
-
-          本次新增自定义每周工作日、双休/单休快捷选择与休息日睡觉状态。每月工作天数继续手动填写，旧配置默认周一至周五。优化工作中隐私隐藏的疑惑表情；午休、下班恢复原有角色且继续隐藏金额。
-
-          如果电脑尚未安装 Microsoft Edge WebView2，首次安装需要联网下载该运行环境。
-
-          安装包 SHA-256：$hash
-          "@ | Set-Content release-notes.md -Encoding utf8NoBOM
-      - name: Publish verified installer
+  publish:
+    needs: windows
+    if: inputs.publish != 'candidate'
+    runs-on: windows-2022
+    environment: updater-release
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: signed-windows-candidate
+          path: release-assets
+      - name: Publish only on explicit request
+        shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
+          PUBLISH_MODE: ${{ inputs.publish }}
         run: |
-          gh release view $env:RELEASE_TAG *> $null
-          if ($LASTEXITCODE -eq 0) { throw 'This version is already published; bump the version before publishing again' }
-          gh release create $env:RELEASE_TAG "release-assets/$env:RELEASE_ASSET" "release-assets/$env:RELEASE_ASSET.sha256" --target $env:GITHUB_SHA --title "今天又赚了多少 $env:RELEASE_TAG" --notes-file release-notes.md --latest
+          $version = (Get-Content release-assets/latest.json -Raw | ConvertFrom-Json).version
+          $tag = "v$version"
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) { throw 'Version already exists; do not replace signed release assets' }
+          $flags = @('--prerelease', '--latest=false')
+          gh release create $tag (Get-ChildItem release-assets -File).FullName --target $env:GITHUB_SHA --title "今天又赚了多少 $tag" --notes-file release-assets/release-notes.md @flags
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

@@ -3,6 +3,8 @@ import { invoke } from "../tauri";
 import { useTheme } from "../themes/ThemeProvider";
 import { ThemePicker, PaletteIcon } from "./ThemePicker";
 import { WorkWeekdays } from "./WorkWeekdays";
+import { UpdatePanel } from "../update/UpdateProvider";
+import { BackupPanel } from "../update/BackupPanel";
 import { useDisplay, type DisplayMode } from "../display/DisplayProvider";
 import {
   DEFAULT_SETTINGS,
@@ -57,14 +59,16 @@ export function Settings() {
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [baseline, setBaseline] = useState("");
 
   useEffect(() => {
-    invoke<{ settings: SalarySettings | null; displayMode?: DisplayMode }>("load_data")
+    invoke<{ settings: SalarySettings | null; displayMode?: DisplayMode; configError?: string }>("load_data")
       .then((data) => {
+        if (data.configError) setLoadError(data.configError);
         setDisplayMode(data.displayMode === "collection" ? "collection" : "amount");
         if (data.settings) {
           const s = data.settings;
-          setForm({
+          const loadedForm: FormState = {
             salary: String(s.monthlySalary),
             days: String(s.workdaysPerMonth),
             workWeekdays: normalizeWorkWeekdays(s.workWeekdays),
@@ -72,7 +76,9 @@ export function Settings() {
             end: s.workEnd,
             lunchStart: s.lunchStart,
             lunchEnd: s.lunchEnd,
-          });
+          };
+          setForm(loadedForm);
+          setBaseline(JSON.stringify({ settings: toSettings(loadedForm), displayMode: data.displayMode === "collection" ? "collection" : "amount" }));
           setIsFirstRun(false);
         }
       })
@@ -225,6 +231,8 @@ export function Settings() {
             {isFirstRun ? "开始赚钱！" : "保存设置"}
           </button>
         </form>
+        <UpdatePanel unsaved={isFirstRun || !!loadError || baseline !== JSON.stringify({ settings: parsed, displayMode })} />
+        <BackupPanel />
       </div>
     </div>
   );

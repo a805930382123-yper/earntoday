@@ -4,3 +4,8 @@ src-tauri/target/
 src-tauri/gen/
 *.local
 .DS_Store
+artifacts/
+release-assets/
+*.key
+*.key.pub
+src-tauri/tauri.updater.generated.json

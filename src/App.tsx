@@ -5,6 +5,7 @@ import { Settings } from "./components/Settings";
 import { invoke } from "./tauri";
 import { ThemeProvider } from "./themes/ThemeProvider";
 import { DisplayProvider } from "./display/DisplayProvider";
+import { UpdateProvider } from "./update/UpdateProvider";
 
 type TauriWindowMetadata = {
   currentWindow?: { label?: string };
@@ -59,5 +60,5 @@ export default function App() {
     };
   }, []);
 
-  return <DisplayProvider><ThemeProvider>{view === "settings" ? <Settings /> : <Widget />}</ThemeProvider></DisplayProvider>;
+  return <DisplayProvider><ThemeProvider><UpdateProvider showNotice={view !== "settings"}>{view === "settings" ? <Settings /> : <Widget />}</UpdateProvider></ThemeProvider></DisplayProvider>;
 }

@@ -321,6 +321,30 @@ body {
 }
 
 /* 减少动态效果偏好：关闭装饰动画，保留进度过渡 */
+.update-panel, .backup-panel {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--skin-card-border, #c9e1f7);
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.update-panel-heading, .update-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.update-panel-heading small { font-weight: 400; }
+.update-panel p, .backup-panel p { margin: 8px 0; overflow-wrap: anywhere; }
+.update-panel button, .backup-panel button, .update-toast button {
+  font: inherit; color: var(--ink); cursor: pointer; padding: 5px 9px;
+  border: 1px solid var(--skin-input-border, #a8cce9); border-radius: 8px;
+  background: var(--skin-note-background, #fff);
+}
+.update-panel button:disabled, .backup-panel button:disabled { opacity: .55; cursor: default; }
+.update-panel button:focus-visible, .backup-panel button:focus-visible, .update-toast button:focus-visible { outline: 2px solid var(--blue-deep, #2879c5); outline-offset: 2px; }
+.update-notes { white-space: pre-wrap; max-height: 130px; overflow-y: auto; }
+.update-panel progress { width: 100%; accent-color: var(--blue-deep, #2879c5); }
+.backup-panel select { display: block; width: 100%; margin: 10px 0; padding: 7px 3px; font: inherit; }
+.update-toast { position: fixed; z-index: 50; bottom: 8px; left: 8px; right: 8px; display: flex; justify-content: space-between; gap: 4px; padding: 5px; background: var(--skin-note-background, #fff); border: 1px solid var(--skin-input-border, #a8cce9); border-radius: 10px; font-size: 12px; }
+.update-toast button:first-child { flex: 1; }
+
 @media (prefers-reduced-motion: reduce) {
   .chibi-base,
   .settings-portrait-image,

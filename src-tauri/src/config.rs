@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 use std::sync::Mutex;
+use std::collections::BTreeMap;
 
 /// 工资与工作时间设置（与前端 SalarySettings 对应，camelCase 序列化）。
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -15,6 +16,8 @@ pub struct SalarySettings {
     pub work_end: String,
     pub lunch_start: String,
     pub lunch_end: String,
+    #[serde(default, flatten)]
+    pub extra: BTreeMap<String, serde_json::Value>,
 }
 
 fn default_work_weekdays() -> Vec<u8> { vec![1, 2, 3, 4, 5] }
@@ -76,6 +79,8 @@ pub struct AppData {
     // Report failures to the UI; this transient diagnostic is never persisted.
     #[serde(default, skip_deserializing, skip_serializing_if = "Option::is_none")]
     pub config_error: Option<String>,
+    #[serde(default, flatten)]
+    pub extra: BTreeMap<String, serde_json::Value>,
 }
 
 impl AppData {
@@ -103,7 +108,7 @@ pub struct AppState {
     pub settings_open: Mutex<bool>,
 }
 
-fn config_path() -> PathBuf {
+pub fn config_path() -> PathBuf {
     dirs::config_dir()
         .unwrap_or_else(|| PathBuf::from("."))
         .join("earn-today")
@@ -122,7 +127,7 @@ fn failed_data(message: String) -> AppData {
     AppData { privacy_mode: PrivacyMode::Hidden, config_error: Some(message), ..AppData::default() }
 }
 
-fn parse_data(content: &str) -> AppData {
+pub(crate) fn parse_data(content: &str) -> AppData {
     let mut value: serde_json::Value = match serde_json::from_str(content) {
         Ok(value) => value,
         Err(error) => return failed_data(format!("配置格式损坏：{error}")),
@@ -135,6 +140,7 @@ fn parse_data(content: &str) -> AppData {
             let days = serde_json::from_value::<Vec<u8>>(field.clone()).ok();
             if !days.as_deref().is_some_and(valid_work_weekdays) {
                 settings.insert("workWeekdays".into(), serde_json::json!(default_work_weekdays()));
+                invalid = true;
             }
         }
     }
@@ -154,7 +160,7 @@ fn parse_data(content: &str) -> AppData {
         Ok(mut data) => {
             if invalid {
                 data.privacy_mode = PrivacyMode::Hidden;
-                data.config_error = Some("显示配置无效，暂不显示收入；请检查并保存设置。".into());
+                data.config_error = Some("原配置含无效字段，已暂停写入以保护原文件；请从本机备份恢复。".into());
             }
             data
         },
@@ -163,14 +169,7 @@ fn parse_data(content: &str) -> AppData {
 }
 
 pub fn persist(data: &AppData) -> Result<(), String> {
-    let path = config_path();
-    if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent).map_err(|e| e.to_string())?;
-    }
-    let mut stored = data.clone();
-    stored.config_error = None;
-    let content = serde_json::to_string_pretty(&stored).map_err(|e| e.to_string())?;
-    fs::write(path, content).map_err(|e| e.to_string())
+    crate::config_storage::persist_at(&config_path(), data)
 }
 
 fn minutes(hm: &str) -> Option<i32> {
@@ -258,7 +257,7 @@ mod theme_tests {
             assert_eq!(settings.work_weekdays, default_work_weekdays());
             assert_eq!(settings.monthly_salary, 8800.0);
             assert_eq!(settings.work_start, "09:00");
-            assert!(data.config_error.is_none());
+            assert!(data.config_error.is_some());
         }
     }
 

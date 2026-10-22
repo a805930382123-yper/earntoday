@@ -1,6 +1,6 @@
 {
   "identifier": "default",
-  "description": "主悬浮窗与设置窗的默认权限",
+  "description": "主悬浮窗与设置窗。更新通过受控 Rust 命令执行，安装前强制备份；不开放插件直接安装权限。",
   "windows": ["main", "settings"],
   "permissions": [
     "core:default",
