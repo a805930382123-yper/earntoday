@@ -68,16 +68,34 @@ const releaseCommit = process.env.GITHUB_SHA;
 assert.match(releaseCommit, /^[a-f0-9]{40}$/);
 const existing = await fetch(`https://api.github.com/repos/${repo}/releases/tags/${tag}`, { headers: { Authorization: `Bearer ${process.env.GH_TOKEN}` }, signal: AbortSignal.timeout(30000) });
 assert.equal(existing.status, 404, "Release already exists or cannot be checked; refusing replacement");
-const created = spawnSync("gh", ["release", "create", tag, ...names.map(n => `release-assets/${n}`), "--repo", repo, "--target", releaseCommit, "--title", `今天又赚了多少 ${tag}`, "--notes-file", "release-assets/release-notes.md", "--draft", "--latest=false"], { encoding: "utf8", windowsHide: true });
-assert.equal(created.status, 0, `Cannot create release draft: ${created.stderr}`);
-let release = await api(`releases/tags/${tag}`);
-assert.equal(release.draft, true); assert.equal(release.target_commitish, releaseCommit);
+// An unpublished tag is not yet resolvable through releases/tags/:tag. Authenticated
+// release listing includes drafts, and lets a failed readback resume identical bytes.
+const findDraft = async () => {
+  const matches = (await api("releases?per_page=100")).filter(r => r.tag_name === tag);
+  assert.ok(matches.length <= 1, "Ambiguous release records"); return matches[0];
+};
+let release = await findDraft();
+if (!release) {
+  const created = spawnSync("gh", ["release", "create", tag, ...names.map(n => `release-assets/${n}`), "--repo", repo, "--target", releaseCommit, "--title", `今天又赚了多少 ${tag}`, "--notes-file", "release-assets/release-notes.md", "--draft", "--latest=false"], { encoding: "utf8", windowsHide: true });
+  assert.equal(created.status, 0, `Cannot create release draft: ${created.stderr}`);
+  release = await findDraft();
+}
+assert.ok(release, "Created draft not found");
+assert.equal(release.draft, true); assert.equal(release.prerelease, false);
+assert.equal(release.name, `今天又赚了多少 ${tag}`);
+assert.equal(release.body, metadata.notes);
+assert.match(release.target_commitish, /^[a-f0-9]{40}$/);
+const draftSource = await api(`compare/${candidate.head_sha}...${release.target_commitish}`);
+assert.ok(["ahead", "identical"].includes(draftSource.status));
+assert.ok(draftSource.files.length < 300 && draftSource.files.every(f => isEvidenceOnly(f.filename) && (!f.previous_filename || isEvidenceOnly(f.previous_filename))), "Existing draft has different product code; refusing replacement");
 assert.deepEqual(release.assets.map(a => a.name).sort(), names);
 for (const asset of release.assets) {
   const downloaded = await api(`releases/assets/${asset.id}`, "GET", undefined, true);
   assert.equal(digest(downloaded), digest(files.get(asset.name)), `Uploaded bytes differ: ${asset.name}`);
 }
 console.log(`Verified all five uploaded assets against candidate run ${candidate.id}; no rebuild performed.`);
+// Only the source/documentation pointer changes; verified uploaded files stay intact.
+if (release.target_commitish !== releaseCommit) release = await api(`releases/${release.id}`, "PATCH", { target_commitish: releaseCommit });
 if (process.env.PUBLISH_MODE === "stable") {
   release = await api(`releases/${release.id}`, "PATCH", { draft: false, prerelease: false, make_latest: "true" });
   const latest = await api("releases/latest"); assert.equal(latest.id, release.id);
