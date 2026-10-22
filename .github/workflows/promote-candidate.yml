@@ -12,9 +12,9 @@ on:
         required: true
         type: string
       publish:
-        description: Keep as draft or publish as the stable Latest release
+        description: Draft, publish stable Latest, or read-only verify a published release
         type: choice
-        options: [draft, stable]
+        options: [draft, stable, verify]
         default: draft
 
 permissions:

@@ -10,7 +10,8 @@ const repo = process.env.GITHUB_REPOSITORY;
 assert.match(repo, /^[\w.-]+\/[\w.-]+$/);
 assert.ok(process.env.GH_TOKEN);
 for (const key of ["CANDIDATE_RUN", "VALIDATION_RUN"]) assert.match(process.env[key], /^\d+$/);
-assert.ok(["draft", "stable"].includes(process.env.PUBLISH_MODE));
+assert.ok(["draft", "stable", "verify"].includes(process.env.PUBLISH_MODE));
+const verifyOnly = process.env.PUBLISH_MODE === "verify";
 const api = async (route, method = "GET", body, binary = false) => {
   const response = await fetch(`https://api.github.com/repos/${repo}/${route}`, {
     method, headers: { Authorization: `Bearer ${process.env.GH_TOKEN}`, Accept: binary ? "application/octet-stream" : "application/vnd.github+json", "Content-Type": "application/json", "X-GitHub-Api-Version": "2022-11-28" },
@@ -67,7 +68,7 @@ const tag = `v${pkg.version}`;
 const releaseCommit = process.env.GITHUB_SHA;
 assert.match(releaseCommit, /^[a-f0-9]{40}$/);
 const existing = await fetch(`https://api.github.com/repos/${repo}/releases/tags/${tag}`, { headers: { Authorization: `Bearer ${process.env.GH_TOKEN}` }, signal: AbortSignal.timeout(30000) });
-assert.equal(existing.status, 404, "Release already exists or cannot be checked; refusing replacement");
+assert.equal(existing.status, verifyOnly ? 200 : 404, "Unexpected release state; refusing replacement");
 // An unpublished tag is not yet resolvable through releases/tags/:tag. Authenticated
 // release listing includes drafts, and lets a failed readback resume identical bytes.
 const findDraft = async () => {
@@ -76,12 +77,14 @@ const findDraft = async () => {
 };
 let release = await findDraft();
 if (!release) {
+  assert.equal(verifyOnly, false, "Published release to verify does not exist");
   const created = spawnSync("gh", ["release", "create", tag, ...names.map(n => `release-assets/${n}`), "--repo", repo, "--target", releaseCommit, "--title", `今天又赚了多少 ${tag}`, "--notes-file", "release-assets/release-notes.md", "--draft", "--latest=false"], { encoding: "utf8", windowsHide: true });
   assert.equal(created.status, 0, `Cannot create release draft: ${created.stderr}`);
   release = await findDraft();
 }
 assert.ok(release, "Created draft not found");
-assert.equal(release.draft, true); assert.equal(release.prerelease, false);
+assert.equal(release.draft, !verifyOnly); assert.equal(release.prerelease, false);
+assert.equal(release.tag_name, tag);
 assert.equal(release.name, `今天又赚了多少 ${tag}`);
 assert.equal(release.body, metadata.notes);
 assert.match(release.target_commitish, /^[a-f0-9]{40}$/);
@@ -95,10 +98,30 @@ for (const asset of release.assets) {
 }
 console.log(`Verified all five uploaded assets against candidate run ${candidate.id}; no rebuild performed.`);
 // Only the source/documentation pointer changes; verified uploaded files stay intact.
-if (release.target_commitish !== releaseCommit) release = await api(`releases/${release.id}`, "PATCH", { target_commitish: releaseCommit });
+if (!verifyOnly && release.target_commitish !== releaseCommit) {
+  release = await api(`releases/${release.id}`, "PATCH", { tag_name: tag, target_commitish: releaseCommit });
+  assert.equal(release.tag_name, tag, "Draft tag changed unexpectedly");
+}
 if (process.env.PUBLISH_MODE === "stable") {
-  release = await api(`releases/${release.id}`, "PATCH", { draft: false, prerelease: false, make_latest: "true" });
-  const latest = await api("releases/latest"); assert.equal(latest.id, release.id);
+  release = await api(`releases/${release.id}`, "PATCH", { tag_name: tag, target_commitish: releaseCommit, draft: false, prerelease: false, make_latest: "true" });
+  assert.equal(release.tag_name, tag, "Published tag differs from metadata download path");
+}
+if (process.env.PUBLISH_MODE === "stable" || verifyOnly) {
+  const latest = await api("releases/latest"); assert.equal(latest.id, release.id); assert.equal(latest.tag_name, tag);
+  for (const asset of release.assets) assert.equal(asset.browser_download_url, `https://github.com/${repo}/releases/download/${tag}/${asset.name}`);
+  // Verify the public installer paths as well as metadata; a matching latest.json
+  // alone does not prove its embedded download URL resolves to the same bytes.
+  await Promise.all(names.map(async assetName => {
+    let matched = false;
+    for (let i = 0; i < 24; i++) {
+      try {
+        const response = await fetch(`https://github.com/${repo}/releases/download/${tag}/${assetName}`, { signal: AbortSignal.timeout(30000) });
+        if (response.ok && digest(Buffer.from(await response.arrayBuffer())) === digest(files.get(assetName))) { matched = true; break; }
+      } catch { /* Public CDN can briefly lag publication. */ }
+      await new Promise(resolve => setTimeout(resolve, 2500));
+    }
+    assert.ok(matched, `Public asset path/bytes could not be verified: ${assetName}`);
+  }));
   let available = false;
   for (let i = 0; i < 24; i++) {
     try {
@@ -109,4 +132,4 @@ if (process.env.PUBLISH_MODE === "stable") {
   }
   assert.ok(available, "Release published but the public latest.json could not be verified; inspect CDN availability");
 }
-console.log(JSON.stringify({ version: pkg.version, mode: process.env.PUBLISH_MODE, url: release.html_url, candidateRun: candidate.id, validationRun: validation.id, buildCommit: candidate.head_sha, releaseCommit, installerSha256: digest(files.get(name)) }));
+console.log(JSON.stringify({ version: pkg.version, mode: process.env.PUBLISH_MODE, url: release.html_url, candidateRun: candidate.id, validationRun: validation.id, buildCommit: candidate.head_sha, releaseCommit: release.target_commitish, verificationCommit: process.env.GITHUB_SHA, installerSha256: digest(files.get(name)) }));
