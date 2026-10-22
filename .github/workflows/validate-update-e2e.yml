@@ -72,15 +72,17 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           "E2E_RELEASE_TAG=$($context.tag)" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
       - name: Create disposable trusted HTTPS fixture certificate
+        timeout-minutes: 2
         run: |
           $tlsPassword = [Guid]::NewGuid().ToString('N')
           Write-Output "::add-mask::$tlsPassword"
-          $cert = New-SelfSignedCertificate -DnsName localhost -CertStoreLocation Cert:\CurrentUser\My -KeyExportPolicy Exportable -NotAfter (Get-Date).AddDays(1)
+          $cert = New-SelfSignedCertificate -DnsName localhost -CertStoreLocation Cert:\CurrentUser\My -KeyExportPolicy Exportable -KeyProtection None -Provider 'Microsoft Software Key Storage Provider' -KeyAlgorithm RSA -KeyLength 2048 -HashAlgorithm SHA256 -NotAfter (Get-Date).AddDays(1)
           $pfx = Join-Path $env:RUNNER_TEMP 'updater-https-fixture.pfx'
           $cer = Join-Path $env:RUNNER_TEMP 'updater-https-fixture.cer'
           Export-PfxCertificate -Cert $cert -FilePath $pfx -Password (ConvertTo-SecureString $tlsPassword -AsPlainText -Force) -CryptoAlgorithmOption AES256_SHA256 | Out-Null
           Export-Certificate -Cert $cert -FilePath $cer | Out-Null
-          Import-Certificate -FilePath $cer -CertStoreLocation Cert:\CurrentUser\Root | Out-Null
+          # Runner is disposable and elevated. Machine Root avoids CurrentUser trust UI.
+          Import-Certificate -FilePath $cer -CertStoreLocation Cert:\LocalMachine\Root -Confirm:$false | Out-Null
           "E2E_TLS_PFX=$pfx" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
           "E2E_TLS_PASSWORD=$tlsPassword" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
           "E2E_TLS_THUMBPRINT=$($cert.Thumbprint)" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
@@ -103,7 +105,7 @@ jobs:
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
           if ($env:E2E_TLS_THUMBPRINT -match '^[A-Fa-f0-9]{40}$') {
-            Remove-Item -LiteralPath "Cert:\CurrentUser\Root\$env:E2E_TLS_THUMBPRINT" -ErrorAction SilentlyContinue
+            Remove-Item -LiteralPath "Cert:\LocalMachine\Root\$env:E2E_TLS_THUMBPRINT" -ErrorAction SilentlyContinue
             Remove-Item -LiteralPath "Cert:\CurrentUser\My\$env:E2E_TLS_THUMBPRINT" -ErrorAction SilentlyContinue
           }
       - uses: actions/upload-artifact@v4
