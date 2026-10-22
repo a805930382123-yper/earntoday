@@ -1,0 +1,58 @@
+name: Publish validated Windows candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_run:
+        description: Successful Windows signed updater release run ID
+        required: true
+        type: string
+      validation_run:
+        description: Successful Real in-app updater validation run ID
+        required: true
+        type: string
+      publish:
+        description: Keep as draft or publish as the stable Latest release
+        type: choice
+        options: [draft, stable]
+        default: draft
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: windows-release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: updater-release
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: signed-windows-candidate
+          path: release-assets
+          run-id: ${{ inputs.candidate_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: updater-e2e-result
+          path: artifacts/update-e2e
+          run-id: ${{ inputs.validation_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Verify evidence and publish the exact signed assets without rebuilding
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TAURI_UPDATER_PUBLIC_KEY: ${{ vars.TAURI_UPDATER_PUBLIC_KEY }}
+          CANDIDATE_RUN: ${{ inputs.candidate_run }}
+          VALIDATION_RUN: ${{ inputs.validation_run }}
+          PUBLISH_MODE: ${{ inputs.publish }}
+        run: node tools/promote-candidate.mjs

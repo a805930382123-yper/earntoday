@@ -1,6 +1,6 @@
 # 自动更新与旧版配置保护交付记录
 
-状态：代码接入及真实旧版覆盖自动化验收完成；**尚未达到正式分发条件**。没有生成生产签名私钥、没有配置 GitHub Secrets、没有发布新版 Release。下述构建与单元测试不能代替真实升级验收。
+状态（2026-10-22）：用户已在本机生成并保存生产签名密钥，GitHub 两项 Secrets 和公钥变量已配置，生产签名候选包与真实旧版覆盖验收通过。应用内升级及异常验收正在隔离 Windows runner 中进行，正式发布仍以这些验收通过为前提。构建与单元测试不能代替真实升级验收。
 
 ## 1. 旧版审计
 
@@ -67,16 +67,16 @@
 
 ## 5. 你需要完成的密钥与 GitHub 配置
 
-以下步骤由你在本机交互式 PowerShell 完成。**不要把私钥或密码粘贴到聊天，也不要放进项目目录。** 当前未执行这些生产密钥操作。
+本项目的密钥与下面三项 GitHub 配置已由用户完成；生产候选构建已验证私钥、密码和公钥相互匹配。以下步骤留作维护记录，**不要重复生成并替换现有密钥**。私钥和密码不粘贴到聊天，也不放进项目目录。
 
 ```powershell
 # 在项目目录运行 CLI；密钥保存在你控制的仓库外目录
 $signingDir = Join-Path $env:USERPROFILE 'EarnTodaySigning'
 New-Item -ItemType Directory -Path $signingDir -Force | Out-Null
-npm run tauri -- signer generate -w "$signingDir\updater.key"
+npm.cmd run tauri -- signer generate -w "$signingDir\updater.key"
 ```
 
-按提示设置密码；安全备份 `updater.key` 和密码（分开保存）及 `updater.key.pub`。丢失旧私钥后，已安装客户端不能简单信任新密钥，需要额外过渡版本；不要每次发布重新生成。
+按提示设置密码，输入时没有字符回显属于正常行为。使用 `npm.cmd` 可避免 PowerShell 拦截 `npm.ps1`，无需更改系统执行策略。安全备份 `updater.key` 和密码（分开保存）及 `updater.key.pub`。丢失旧私钥后，已安装客户端不能简单信任新密钥，需要额外过渡版本；不要每次发布重新生成。
 
 在 [仓库 Actions Secrets/Variables](https://github.com/a805930382123-yper/earntoday/settings/secrets/actions) 配置：
 
@@ -103,7 +103,7 @@ GitHub 建议另建 `updater-release` Environment，配置发布审批人/受保
 3. 工作流执行原有测试、签名构建、安装包签名/可信版本验证，生成 `.exe`、`.exe.sig`、`.sha256`、`latest.json`，并在干净 Windows runner 上执行真实 v0.2.0 覆盖测试脚本。只有全部成功才上传候选 artifact。
 4. 下载候选包，在干净 VM 完成窗口/托盘/交互验收和下面 A/B/C 测试。不要在真实工作配置上试验卸载/清理。
 5. 可先选择 `prerelease` 发布测试包；它不会成为 `/releases/latest`，不会触发正式客户端更新。应用内升级测试需使用专用测试 endpoint 构建，见下节。
-6. 正式发布必须在验收同一组签名资产后进行。**不要重建已验收的签名包再冒充同一包。** 在 GitHub 中将已验收的预发布改为正式并设为 Latest，或上传已验收候选资产到对应版本 Release。安装器、签名、元数据必须一起存在。
+6. 人工运行 **Publish validated Windows candidate**，输入签名候选构建和成功的应用内升级验收 run ID；默认 `draft`，选择 `stable` 才发布正式 Latest。该工作流不重新构建，也不读取签名私钥。它要求两次验收成功，核对候选之后没有产品代码变化、验收结果完整、签名绑定版本正确、SHA-256 与元数据一致，再创建草稿并逐个回读核对五个上传文件，最后才允许转正式。已有同版 Release 时拒绝覆盖。**不要重建已验收的签名包再冒充同一包。**
 7. 检查 Release 的 `latest.json` 返回 200、版本正确、`windows-x86_64.url` 指向同一版本安装包、signature 是 `.sig` 内容而不是签名 URL。推送源码不等于更新已经发布。
 
 `prepare-release.mjs` 会以公钥验证真实包的 Minisign payload 签名及可信注释签名，版本不一致/签名错误直接阻止打包元数据。CLI 最低版本固定到支持版本绑定的 2.12.1 范围；发布依赖使用 lockfile。
@@ -117,6 +117,8 @@ GitHub 建议另建 `updater-release` Environment，配置发布审批人/受保
 人工还需确认：原安装目录、注册表安装记录只有一个、开始菜单/桌面入口没有重复、托盘正常、拖拽置顶/透明窗、两个皮肤、完整/迷你、隐私、午休/下班、趣味积累和桌宠点击互动。机器目前无 Windows Sandbox，未为了这项测试修改当前用户的真实安装或配置。另增只读权限的 `validate-upgrade.yml`，推送配置保护代码时用一次性 CI 密钥进行隔离覆盖测试；不使用生产 Secrets、不上传测试安装包、不创建 Release。[隔离验收运行记录](https://github.com/a805930382123-yper/earntoday/actions/runs/39710729349)。
 
 自动化结果（2026-10-22）：工作流全部成功，实际从 **0.2.0 → 0.3.0** 覆盖安装。测试旧月薪 16789.25、每月 21 天、自定义星期 [0,2,4,6]、非默认上下班与午休时段、咪宝、迷你和隐藏收入。旧配置 8 个顶层字段及嵌套内容逐项匹配，新增 displayMode 默认 amount，单用户卸载记录数为 1，新版备份可用，角色图片全部加载。签名 NSIS 构建及 payload / 可信版本签名验证也通过。此验收使用一次性测试密钥，没有上传安装包或创建 Release。
+
+之后使用用户配置的**正式签名密钥**再次执行了相同的完整覆盖验收，全部通过：[生产签名候选运行 39718145269](https://github.com/a805930382123-yper/earntoday/actions/runs/39718145269)。候选 artifact 为 `signed-windows-candidate`，不等于已经对外发布。私钥仅在 GitHub 构建签名步骤使用，没有从本机读取或输出到聊天。
 
 ### B：应用内签名更新
 
@@ -152,6 +154,6 @@ GitHub 建议另建 `updater-release` Environment，配置发布审批人/受保
 - 真实 A 的自动化覆盖部分：**已通过**，见上方实际运行记录。窗口/托盘创建及图片加载由运行验证；托盘点击、双主题各状态、桌面入口等人工体验检查仍待完成。
 - 真实 B：**尚未执行**。一次性 CI 密钥只用于隔离覆盖测试；仍需你控制并备份的生产签名身份、Secrets，以及专用高版本测试 Release，才能完成发布准备和应用内升级验收。
 - C 的配置异常与发布侧签名篡改单元测试已覆盖；实际断网/下载中断/错签安装/首次重启仍需 VM 验证。
-- 生产签名公钥、Secrets、签名安装包、`.sig`、公开 latest.json：**尚未配置或发布**。当前代码不得作为“用户已能自动更新”交付给试用用户。
+- 生产签名公钥、Secrets：**已配置并通过正式签名候选构建验证**；签名安装包、`.sig`、SHA-256、latest.json 已生成候选 artifact。公开正式 Release 与 `/releases/latest/download/latest.json` 仍须在实际升级验收通过后发布。
 
 新增主要文件：`src-tauri/src/config_storage.rs`、`src-tauri/src/updater.rs`、`src/update/*`、`tools/prepare-updater.mjs`、`tools/prepare-release.mjs`、`tools/native-test-session.mjs`、`tools/verify-upgrade.mjs`、隔离验收工作流、发布工具测试及本说明；增量修改持久化、命令注册、设置页、版本源、capabilities 说明和已有发布工作流。

@@ -79,7 +79,7 @@ npm run tauri build
 
 产物位于 `src-tauri/target/release/bundle/nsis/`。
 
-仓库的 `.github/workflows/release.yml` 会构建、验证 Windows 安装包并发布到 GitHub Releases。发布新版本前，同步修改 `package.json`、`src-tauri/Cargo.toml`、`src-tauri/tauri.conf.json` 的版本号和锁文件，再推送对应的 `v版本号` 标签；也可以从 Actions 页面手动运行发布流程。
+仓库的 `.github/workflows/release.yml` 由 Actions 页面手动运行，构建、签名并执行真实旧版覆盖验收，默认只生成候选 artifact。发布新版本前，同步修改 `package.json`、`src-tauri/Cargo.toml`、`src-tauri/tauri.conf.json` 的版本号和锁文件，补充版本说明；应用内更新验收通过后，用 `promote-candidate.yml` 将同一组候选文件发布到 Releases。推送源码或标签不会自动分发新版。完整步骤见 [自动更新交付记录](docs/updater.md)。
 
 环境要求：Node.js ≥ 22.6、Rust（MSVC）、Visual Studio Build Tools（C++ 工作负载）、WebView2。
 
@@ -110,4 +110,4 @@ Tauri 2 · React 18 · TypeScript · Vite · 原生 CSS
 
 V1.1：完整卡片左上缩小按钮进入迷你模式；迷你卡片右上展开按钮恢复。眼睛按钮隐藏/显示收入，横线按钮仍为隐藏到托盘。窗口位置、隐私启动保护与验收记录见 `docs/ui/mini-privacy-delivery.md`。
 
-V0.3.0 自动更新候选：安装与配置审计、完整存储字段、数据备份保护、签名密钥 / GitHub Secrets 步骤、首次过渡安装方法及尚未完成的真实升级验收见 [自动更新交付记录](docs/updater.md)。当前未配置生产签名及发布新版安装包，不得以构建通过代替升级验收。
+V0.3.0 自动更新：提供设置页检查更新、下载进度、用户确认安装，以及原配置备份与恢复。生产签名及真实 v0.2.0 覆盖验收已通过；正式发布与应用内升级验收状态、完整存储字段、首次过渡方法见 [自动更新交付记录](docs/updater.md)。旧版用户首次仍需手动覆盖安装兼容的新安装包，以后使用应用内更新。
