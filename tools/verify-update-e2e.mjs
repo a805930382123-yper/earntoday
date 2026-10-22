@@ -34,6 +34,16 @@ const config = async () => JSON.parse(await readFile(configPath, "utf8"));
 const preferenceKeys = ["settings", "selectedThemeId", "windowMode", "privacyMode", "displayMode", "fullPosition", "positionScale", "fullPositionScale"];
 const preferences = data => Object.fromEntries(preferenceKeys.map(k => [k, data[k]]));
 const safeInvoke = (app, command, args = {}, timeoutMs = 45000) => app.evaluate(`window.__TAURI_INTERNALS__.invoke(${JSON.stringify(command)},${JSON.stringify(args)}).then(value=>({ok:true,value}),error=>({ok:false,error:String(error)}))`, timeoutMs);
+const showSettings = async app => {
+  // WebView's first paint precedes the asynchronous frontend event subscription.
+  // Re-send the ordinary open command until the real settings DOM is ready.
+  for (let i = 0; i < 80; i++) {
+    await app.invoke("open_settings");
+    if (await app.evaluate("Boolean(document.querySelector('[aria-label=\"应用更新\"]'))")) return;
+    await pause(250);
+  }
+  throw new Error(`Settings did not open: ${await app.evaluate("document.body.textContent.slice(-2000)")}`);
+};
 let app; let baseline; let fixture; const passed = []; const observedPhases = [];
 const recordPass = name => { passed.push(name); console.log(`PASS ${name}`); };
 const assertPreserved = async () => assert.deepEqual(preferences(await config()), preferences(baseline), "User preferences changed after update failure/restart");
@@ -120,13 +130,13 @@ try {
 
   // Fresh process without the fixture proxy: real GitHub HTTPS metadata + installer.
   app = await openNative(installed);
-  await app.invoke("open_settings");
+  await showSettings(app);
   const click = async text => {
     for (let i = 0; i < 80; i++) {
       if (await app.evaluate(`(()=>{const b=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===${JSON.stringify(text)}&&!b.disabled);if(!b)return false;b.click();return true})()`)) return true;
       await pause(500);
     }
-    return false;
+    throw new Error(`UI button unavailable: ${text}; ${await app.evaluate("document.body.textContent.slice(-2000)")}`);
   };
   const waitText = async text => { for (let i = 0; i < 80; i++) { if (await app.evaluate(`document.body.textContent.includes(${JSON.stringify(text)})`)) return; await pause(500); } throw new Error(`UI missing: ${text}`); };
   assert.ok(await click("检查更新")); await waitText(`发现新版本 ${ctx.highVersion}`);
@@ -151,7 +161,7 @@ try {
   assert.ok(observedPhases.includes("downloading"), "Native download progress did not reach the WebView");
   await assertPreserved(); recordPass("real-ui-download-install-and-auto-restart");
   await app.stop(); stopInstalledCopies(); await pause(500);
-  app = await openNative(installed); await app.invoke("open_settings"); await pause(1800);
+  app = await openNative(installed); await showSettings(app); await pause(1800);
   assert.ok(await app.evaluate(`document.body.textContent.includes(${JSON.stringify(ctx.highVersion)})`), "Upgraded embedded frontend version incorrect");
   await assertPreserved();
   const backups = await app.invoke("list_config_backups");
