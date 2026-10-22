@@ -2,9 +2,6 @@ name: Real in-app updater validation
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths: ['.github/workflows/validate-update-e2e.yml']
 
 concurrency:
   group: real-updater-validation
@@ -67,7 +64,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           $context = Get-Content artifacts/update-e2e/context.json -Raw | ConvertFrom-Json
-          if ($context.tag -ne "v0.3.1-updater-test.$env:GITHUB_RUN_ID.$env:GITHUB_RUN_ATTEMPT") { throw 'Unexpected test tag' }
+          if ($context.tag -ne "v$($context.highVersion)" -or $context.tag -notmatch "^v\d+\.\d+\.\d+-updater-test\.$env:GITHUB_RUN_ID\.$env:GITHUB_RUN_ATTEMPT`$") { throw 'Unexpected test tag' }
           gh release create $context.tag (Get-ChildItem release-assets -File).FullName --target $env:GITHUB_SHA --title '自动更新隔离验收专用，请勿安装' --notes '仅用于自动化升级验收。不面向试用用户，不是正式版本，验收结束后自动移除。' --prerelease --latest=false
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           "E2E_RELEASE_TAG=$($context.tag)" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
@@ -100,7 +97,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           if ($env:E2E_RELEASE_TAG) {
-            if ($env:E2E_RELEASE_TAG -ne "v0.3.1-updater-test.$env:GITHUB_RUN_ID.$env:GITHUB_RUN_ATTEMPT") { throw 'Refusing unrelated release cleanup' }
+            if ($env:E2E_RELEASE_TAG -notmatch "^v\d+\.\d+\.\d+-updater-test\.$env:GITHUB_RUN_ID\.$env:GITHUB_RUN_ATTEMPT`$") { throw 'Refusing unrelated release cleanup' }
             gh release delete $env:E2E_RELEASE_TAG --yes --cleanup-tag
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }

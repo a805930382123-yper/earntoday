@@ -41,12 +41,13 @@ for (const head of [validation.head_sha, process.env.GITHUB_SHA]) {
 const pkg = JSON.parse(await readFile("package.json", "utf8"));
 const result = JSON.parse(await readFile("artifacts/update-e2e/result.json", "utf8"));
 assert.equal(result.passed, true); assert.equal(result.lowVersion, pkg.version);
-assert.equal(result.highVersion, `0.3.1-updater-test.${validation.id}.${validation.run_attempt}`);
+assert.match(pkg.version, /^\d+\.\d+\.\d+$/);
+const [major, minor, patch] = pkg.version.split(".").map(Number);
+assert.equal(result.highVersion, `${major}.${minor}.${patch + 1}-updater-test.${validation.id}.${validation.run_attempt}`);
 assert.equal(result.productionLatestChanged, false);
 for (const test of ["native-network-unavailable-proxy", "unusable-update-source", "same-version-and-downgrade-rejected", "real-installer-signature-rejected", "real-https-download-interruption", "real-ui-later-does-not-install", "real-ui-download-install-and-auto-restart", "new-version-first-start-and-checkpoint-preserved", "corrupt-config-kept-and-explicitly-restored", "missing-and-legacy-fields-preserved"]) {
   assert.ok(result.tests.includes(test), `Missing real acceptance evidence: ${test}`);
 }
-assert.match(pkg.version, /^\d+\.\d+\.\d+$/);
 const name = `EarnToday_${pkg.version}_x64-setup.exe`;
 const names = [name, `${name}.sig`, `${name}.sha256`, "latest.json", "release-notes.md"].sort();
 assert.deepEqual((await readdir("release-assets")).sort(), names, "Unexpected/missing candidate asset");
@@ -63,12 +64,14 @@ assert.equal(metadata.platforms["windows-x86_64"].url, `https://github.com/${rep
 assert.equal(metadata.notes, files.get("release-notes.md").toString("utf8"));
 
 const tag = `v${pkg.version}`;
+const releaseCommit = process.env.GITHUB_SHA;
+assert.match(releaseCommit, /^[a-f0-9]{40}$/);
 const existing = await fetch(`https://api.github.com/repos/${repo}/releases/tags/${tag}`, { headers: { Authorization: `Bearer ${process.env.GH_TOKEN}` }, signal: AbortSignal.timeout(30000) });
 assert.equal(existing.status, 404, "Release already exists or cannot be checked; refusing replacement");
-const created = spawnSync("gh", ["release", "create", tag, ...names.map(n => `release-assets/${n}`), "--repo", repo, "--target", candidate.head_sha, "--title", `今天又赚了多少 ${tag}`, "--notes-file", "release-assets/release-notes.md", "--draft", "--latest=false"], { encoding: "utf8", windowsHide: true });
+const created = spawnSync("gh", ["release", "create", tag, ...names.map(n => `release-assets/${n}`), "--repo", repo, "--target", releaseCommit, "--title", `今天又赚了多少 ${tag}`, "--notes-file", "release-assets/release-notes.md", "--draft", "--latest=false"], { encoding: "utf8", windowsHide: true });
 assert.equal(created.status, 0, `Cannot create release draft: ${created.stderr}`);
 let release = await api(`releases/tags/${tag}`);
-assert.equal(release.draft, true); assert.equal(release.target_commitish, candidate.head_sha);
+assert.equal(release.draft, true); assert.equal(release.target_commitish, releaseCommit);
 assert.deepEqual(release.assets.map(a => a.name).sort(), names);
 for (const asset of release.assets) {
   const downloaded = await api(`releases/assets/${asset.id}`, "GET", undefined, true);
@@ -88,4 +91,4 @@ if (process.env.PUBLISH_MODE === "stable") {
   }
   assert.ok(available, "Release published but the public latest.json could not be verified; inspect CDN availability");
 }
-console.log(JSON.stringify({ version: pkg.version, mode: process.env.PUBLISH_MODE, url: release.html_url, candidateRun: candidate.id, validationRun: validation.id, installerSha256: digest(files.get(name)) }));
+console.log(JSON.stringify({ version: pkg.version, mode: process.env.PUBLISH_MODE, url: release.html_url, candidateRun: candidate.id, validationRun: validation.id, buildCommit: candidate.head_sha, releaseCommit, installerSha256: digest(files.get(name)) }));
