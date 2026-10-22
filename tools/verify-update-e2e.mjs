@@ -35,6 +35,7 @@ const preferenceKeys = ["settings", "selectedThemeId", "windowMode", "privacyMod
 const preferences = data => Object.fromEntries(preferenceKeys.map(k => [k, data[k]]));
 const safeInvoke = (app, command, args = {}, timeoutMs = 45000) => app.evaluate(`window.__TAURI_INTERNALS__.invoke(${JSON.stringify(command)},${JSON.stringify(args)}).then(value=>({ok:true,value}),error=>({ok:false,error:String(error)}))`, timeoutMs);
 let app; let baseline; let server; const passed = []; const observedPhases = [];
+const recordPass = name => { passed.push(name); console.log(`PASS ${name}`); };
 const assertPreserved = async () => assert.deepEqual(preferences(await config()), preferences(baseline), "User preferences changed after update failure/restart");
 const normal = JSON.parse(await readFile("release-assets/latest.json", "utf8"));
 const publishManifest = async (data, label) => {
@@ -46,12 +47,17 @@ const publishManifest = async (data, label) => {
   await pause(1500);
 };
 const waitCheck = async (predicate, label) => {
-  for (let i = 0; i < 24; i++) {
+  let last;
+  // GitHub's download redirect can retain the replaced asset for several minutes.
+  // Never install until the native updater has seen this case's distinct marker.
+  for (let i = 0; i < 144; i++) {
     const result = await safeInvoke(app, "check_update");
+    last = result;
     if (predicate(result)) return result;
+    if (i % 12 === 0) console.log(`Waiting for ${label}: ${JSON.stringify(result)}`);
     await pause(2500);
   }
-  throw new Error(`Test manifest did not reach expected state: ${label}`);
+  throw new Error(`Test manifest did not reach expected state: ${label}; last=${JSON.stringify(last)}`);
 };
 try {
   assert.equal(productVersion(), ctx.lowVersion);
@@ -67,18 +73,18 @@ try {
   // Real Rust request through an unreachable per-process proxy: no system network changes.
   app = await openNative(installed, { HTTP_PROXY: "http://127.0.0.1:9", HTTPS_PROXY: "http://127.0.0.1:9", ALL_PROXY: "http://127.0.0.1:9", NO_PROXY: "" });
   await waitCheck(r => !r.ok && r.error.includes("无法连接"), "unreachable network");
-  await assertPreserved(); passed.push("native-network-unavailable-proxy"); await app.stop();
+  await assertPreserved(); recordPass("native-network-unavailable-proxy"); await app.stop();
   app = await openNative(installed); await pause(1800);
 
   await publishManifest("{invalid-json", "invalid source");
   await waitCheck(r => !r.ok && r.error.includes("无法连接"), "invalid source");
-  await assertPreserved(); passed.push("unusable-update-source");
+  await assertPreserved(); recordPass("unusable-update-source");
   for (const version of [ctx.lowVersion, "0.2.0"]) {
     await publishManifest({ ...normal, version }, `no update ${version}`);
     await waitCheck(r => r.ok && r.value === null, `no update ${version}`);
     await assertPreserved();
   }
-  passed.push("same-version-and-downgrade-rejected");
+  recordPass("same-version-and-downgrade-rejected");
 
   const bad = structuredClone(normal); bad.notes = "e2e-wrong-signature";
   const originalSignature = bad.platforms["windows-x86_64"].signature;
@@ -91,7 +97,7 @@ try {
   const rejected = await safeInvoke(app, "install_update", {}, 120000);
   assert.ok(!rejected.ok && rejected.error.includes("签名"), "Invalid signature was not rejected");
   assert.equal(productVersion(), ctx.lowVersion); assert.equal(app.child.exitCode, null);
-  await assertPreserved(); passed.push("real-installer-signature-rejected");
+  await assertPreserved(); recordPass("real-installer-signature-rejected");
 
   // A locally trusted HTTPS server disconnects before Content-Length is fulfilled.
   // TLS verification remains enabled; only the disposable runner trusts this certificate.
@@ -112,18 +118,19 @@ try {
   assert.ok(chunksSent > 0, "HTTPS transfer never started; not a download-interruption test");
   assert.ok(!incomplete.ok && incomplete.error.includes("下载"));
   assert.equal(productVersion(), ctx.lowVersion); assert.equal(app.child.exitCode, null);
-  await assertPreserved(); passed.push("real-https-download-interruption");
+  await assertPreserved(); recordPass("real-https-download-interruption");
   await new Promise(resolveClose => server.close(resolveClose)); server = undefined;
 
   const valid = structuredClone(normal); valid.notes = "e2e-valid-upgrade";
   await publishManifest(valid, "valid upgrade");
+  await waitCheck(r => r.ok && r.value?.notes === valid.notes, "valid upgrade marker");
   await app.invoke("open_settings");
   const click = text => app.evaluate(`(()=>{const b=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===${JSON.stringify(text)}&&!b.disabled);if(!b)return false;b.click();return true})()`);
   const waitText = async text => { for (let i = 0; i < 80; i++) { if (await app.evaluate(`document.body.textContent.includes(${JSON.stringify(text)})`)) return; await pause(500); } throw new Error(`UI missing: ${text}`); };
   assert.ok(await click("检查更新")); await waitText("e2e-valid-upgrade");
   assert.ok(await click("稍后再说")); await pause(800);
   assert.equal(productVersion(), ctx.lowVersion); assert.equal(app.child.exitCode, null);
-  await assertPreserved(); passed.push("real-ui-later-does-not-install");
+  await assertPreserved(); recordPass("real-ui-later-does-not-install");
   assert.ok(await click("检查更新")); await waitText("e2e-valid-upgrade");
   app.on("Runtime.bindingCalled", event => { if (event.name === "__e2ePhase") observedPhases.push(event.payload); });
   await app.send("Runtime.enable"); await app.send("Runtime.addBinding", { name: "__e2ePhase" });
@@ -140,7 +147,7 @@ try {
   assert.equal(productVersion(), ctx.highVersion, "Updater did not replace installed executable");
   assert.ok(runningCopies() > 0, "NSIS did not restart the upgraded application");
   assert.ok(observedPhases.includes("downloading"), "Native download progress did not reach the WebView");
-  await assertPreserved(); passed.push("real-ui-download-install-and-auto-restart");
+  await assertPreserved(); recordPass("real-ui-download-install-and-auto-restart");
   await app.stop(); stopInstalledCopies(); await pause(500);
   app = await openNative(installed); await app.invoke("open_settings"); await pause(1800);
   assert.ok(await app.evaluate(`document.body.textContent.includes(${JSON.stringify(ctx.highVersion)})`), "Upgraded embedded frontend version incorrect");
@@ -148,7 +155,7 @@ try {
   const backups = await app.invoke("list_config_backups");
   assert.ok(backups.some(b => b.restorable && b.appVersion === ctx.lowVersion && b.id.startsWith("checkpoint-")), "Missing verified pre-update backup");
   await waitCheck(r => r.ok && r.value === null, "upgraded current version");
-  passed.push("new-version-first-start-and-checkpoint-preserved");
+  recordPass("new-version-first-start-and-checkpoint-preserved");
   const goodBytes = await readFile(configPath, "utf8");
   await app.stop(); await writeFile(configPath, "{broken");
   app = await openNative(installed);
@@ -156,14 +163,14 @@ try {
   assert.equal(broken.ok, false); assert.equal(await readFile(configPath, "utf8"), "{broken");
   const checkpoint = backups.find(b => b.restorable && b.id.startsWith("checkpoint-"));
   await app.invoke("restore_config_backup", { id: checkpoint.id });
-  await assertPreserved(); passed.push("corrupt-config-kept-and-explicitly-restored");
+  await assertPreserved(); recordPass("corrupt-config-kept-and-explicitly-restored");
   await app.stop();
   const legacy = JSON.parse(goodBytes); delete legacy.displayMode; delete legacy.settings.workWeekdays;
   await writeFile(configPath, JSON.stringify(legacy)); app = await openNative(installed);
   const loaded = await app.invoke("load_data");
   assert.equal(loaded.settings.monthlySalary, baseline.settings.monthlySalary);
   assert.deepEqual(loaded.settings.workWeekdays, [1, 2, 3, 4, 5]); assert.equal(loaded.displayMode, "amount");
-  passed.push("missing-and-legacy-fields-preserved");
+  recordPass("missing-and-legacy-fields-preserved");
   await app.stop(); await writeFile(configPath, goodBytes);
   const result = { passed: true, lowVersion: ctx.lowVersion, highVersion: ctx.highVersion, tests: passed, progressPhases: [...new Set(observedPhases)], productionLatestChanged: false };
   await writeFile("artifacts/update-e2e/result.json", JSON.stringify(result, null, 2));
