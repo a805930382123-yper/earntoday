@@ -1,0 +1,114 @@
+name: Real in-app updater validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/validate-update-e2e.yml']
+
+concurrency:
+  group: real-updater-validation
+  cancel-in-progress: false
+
+permissions:
+  contents: write # Create/delete this run's isolated prerelease only; never mark Latest.
+
+jobs:
+  updater:
+    runs-on: windows-2022
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      TAURI_UPDATER_PUBLIC_KEY: ${{ vars.TAURI_UPDATER_PUBLIC_KEY }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Check signing configuration and install dependencies
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:TAURI_SIGNING_PRIVATE_KEY)) { throw 'Missing private key Secret' }
+          node tools/prepare-updater.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm ci
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm test
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Build low version with isolated HTTPS endpoint
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          node tools/prepare-update-e2e.mjs low
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run tauri -- build --bundles nsis --ci --config src-tauri/tauri.updater.generated.json -- --locked
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tools/prepare-update-e2e.mjs save-low
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Build higher signed test version
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          node tools/prepare-update-e2e.mjs high
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run tauri -- build --bundles nsis --ci --config src-tauri/tauri.updater.generated.json -- --locked
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tools/prepare-release.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Create isolated test prerelease (never Latest)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          $context = Get-Content artifacts/update-e2e/context.json -Raw | ConvertFrom-Json
+          if ($context.tag -ne "v0.3.1-updater-test.$env:GITHUB_RUN_ID.$env:GITHUB_RUN_ATTEMPT") { throw 'Unexpected test tag' }
+          gh release create $context.tag (Get-ChildItem release-assets -File).FullName --target $env:GITHUB_SHA --title '自动更新隔离验收专用，请勿安装' --notes '仅用于自动化升级验收。不面向试用用户，不是正式版本，验收结束后自动移除。' --prerelease --latest=false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "E2E_RELEASE_TAG=$($context.tag)" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+      - name: Create disposable trusted HTTPS fixture certificate
+        run: |
+          $tlsPassword = [Guid]::NewGuid().ToString('N')
+          Write-Output "::add-mask::$tlsPassword"
+          $cert = New-SelfSignedCertificate -DnsName localhost -CertStoreLocation Cert:\CurrentUser\My -KeyExportPolicy Exportable -NotAfter (Get-Date).AddDays(1)
+          $pfx = Join-Path $env:RUNNER_TEMP 'updater-https-fixture.pfx'
+          $cer = Join-Path $env:RUNNER_TEMP 'updater-https-fixture.cer'
+          Export-PfxCertificate -Cert $cert -FilePath $pfx -Password (ConvertTo-SecureString $tlsPassword -AsPlainText -Force) -CryptoAlgorithmOption AES256_SHA256 | Out-Null
+          Export-Certificate -Cert $cert -FilePath $cer | Out-Null
+          Import-Certificate -FilePath $cer -CertStoreLocation Cert:\CurrentUser\Root | Out-Null
+          "E2E_TLS_PFX=$pfx" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+          "E2E_TLS_PASSWORD=$tlsPassword" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+          "E2E_TLS_THUMBPRINT=$($cert.Thumbprint)" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+      - name: Verify real UI install, restart, data preservation and failures
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          node tools/verify-update-e2e.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Remove only this run's test release and certificate
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if ($env:E2E_RELEASE_TAG) {
+            if ($env:E2E_RELEASE_TAG -ne "v0.3.1-updater-test.$env:GITHUB_RUN_ID.$env:GITHUB_RUN_ATTEMPT") { throw 'Refusing unrelated release cleanup' }
+            gh release delete $env:E2E_RELEASE_TAG --yes --cleanup-tag
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          if ($env:E2E_TLS_THUMBPRINT -match '^[A-Fa-f0-9]{40}$') {
+            Remove-Item -LiteralPath "Cert:\CurrentUser\Root\$env:E2E_TLS_THUMBPRINT" -ErrorAction SilentlyContinue
+            Remove-Item -LiteralPath "Cert:\CurrentUser\My\$env:E2E_TLS_THUMBPRINT" -ErrorAction SilentlyContinue
+          }
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: updater-e2e-result
+          path: artifacts/update-e2e/result.json
+          if-no-files-found: error
