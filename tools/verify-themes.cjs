@@ -10,6 +10,8 @@ async function prepare(page, themeId = null, display = {}) {
     const callbacks = new Map(), listeners = new Map(); let id = 0;
     const data = { settings: { monthlySalary: 8800, workdaysPerMonth: 22, workStart: '09:00', workEnd: '18:00', lunchStart: '12:00', lunchEnd: '13:00' }, position: { x: 100, y: 200 }, selectedThemeId: initialTheme, windowMode: display.windowMode || 'full', privacyMode: display.privacyMode || 'visible', displayMode: display.displayMode || 'amount', configError: display.configError };
     const emit = (event, payload = null) => { for (const listener of listeners.values()) if (listener.event === event) callbacks.get(listener.handler)?.({ event, id: listener.id, payload }); };
+    let visibility = { visible: true, revision: 0 }, settingsOpen = false;
+    let shortcut = { enabled: true, registered: true, error: null };
     window.__themeTest = { data, calls: [], failSave: false, emit, listenerCount: () => listeners.size };
     let release;
     const readGate = display.holdReads ? new Promise(resolve => { release = resolve; }) : Promise.resolve();
@@ -22,12 +24,18 @@ async function prepare(page, themeId = null, display = {}) {
       transformCallback(fn) { callbacks.set(++id, fn); return id; }, unregisterCallback: callback => callbacks.delete(callback),
       async invoke(cmd, args) {
         window.__themeTest.calls.push({ cmd, args });
+        if (cmd === 'get_main_visibility') return { ...visibility };
+        if (cmd === 'get_shortcut_status') return { ...shortcut };
+        if (cmd === 'set_shortcut_enabled') { shortcut = { enabled: args.enabled, registered: args.enabled, error: null }; return { ...shortcut }; }
+        if (cmd === 'toggle_main_visibility' || cmd === 'hide_main') {
+          visibility = { visible: cmd === 'hide_main' ? false : !visibility.visible, revision: visibility.revision + 1 };
+          emit('main-visibility', visibility); return;
+        }
         if (cmd === 'load_data') { await readGate; return JSON.parse(JSON.stringify(data)); }
         if (cmd === 'plugin:event|listen') { const eventId = ++id; listeners.set(eventId, { ...args, id: eventId }); return eventId; }
         if (cmd === 'plugin:event|unlisten') { listeners.delete(args.eventId); return; }
-        if (cmd === 'open_settings') { await window.__resizeThemeWindow(400, 600); emit('open-settings'); return; }
-        if (cmd === 'hide_settings') { await resizeMain(); emit('show-main'); return; }
-        if (cmd === 'hide_main') return;
+        if (cmd === 'open_settings') { if (!settingsOpen) { settingsOpen = true; await window.__resizeThemeWindow(400, 600); emit('open-settings'); } return; }
+        if (cmd === 'hide_settings') { settingsOpen = false; await resizeMain(); emit('show-main'); return; }
         if (cmd === 'plugin:window|start_dragging') return;
         if (cmd === 'plugin:window|outer_position') return { ...data.position };
         if (cmd === 'plugin:window|scale_factor') return 1;
@@ -42,7 +50,7 @@ async function prepare(page, themeId = null, display = {}) {
           if (window.__themeTest.failSave) throw new Error('模拟磁盘写入失败');
           data.selectedThemeId = args.selectedThemeId; emit('theme-updated', data.selectedThemeId); return;
         }
-        if (cmd === 'save_settings') { if (window.__themeTest.failSave) throw new Error('模拟磁盘写入失败'); data.settings = { ...args.settings }; if(args.displayMode) data.displayMode = args.displayMode; data.configError = null; emit('display-updated', preferences()); await resizeMain(); emit('settings-updated'); return; }
+        if (cmd === 'save_settings') { if (window.__themeTest.failSave) throw new Error('模拟磁盘写入失败'); settingsOpen = false; data.settings = { ...args.settings }; if(args.displayMode) data.displayMode = args.displayMode; data.configError = null; emit('display-updated', preferences()); await resizeMain(); emit('settings-updated'); return; }
         throw new Error(`Unexpected command ${cmd}`);
       },
     };

@@ -2,6 +2,8 @@ mod config;
 mod display_window;
 mod config_storage;
 mod updater;
+mod visibility;
+mod shortcut;
 
 use config::{persist, validate_settings, AppData, AppState, DisplayMode, DisplayPreferences, PrivacyMode, SalarySettings, WindowMode};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -20,18 +22,26 @@ fn restore_main_window(app: &AppHandle, show: bool) -> tauri::Result<()> {
 }
 
 fn show_main(app: &AppHandle) {
-    if let Some(win) = app.get_webview_window("main") {
-        let _ = restore_main_window(app, false);
-        let _ = win.set_focus();
-        let _ = win.show();
+    // Explicit navigation after save/close only. Tray and hotkey restore the current view.
+    if let Err(error) = restore_main_window(app, false) {
+        eprintln!("返回小组件失败：{error}");
+        return;
     }
     app.emit_to("main", "show-main", ()).ok();
+    if let Err(error) = visibility::show(app) { eprintln!("显示窗口失败：{error}"); }
 }
 
-fn open_settings_window(app: &AppHandle) {
+fn open_settings_window(app: &AppHandle, initializing: bool) {
     if let Some(win) = app.get_webview_window("main") {
         let state = app.state::<AppState>();
         let was_open = *state.settings_open.lock().expect("view state poisoned");
+        if was_open && !initializing {
+            // Idempotent view synchronization also recovers a missed startup event.
+            // Setting the same App view does not remount Settings or its theme page.
+            app.emit_to("main", "open-settings", ()).ok();
+            if let Err(error) = visibility::show(app) { eprintln!("恢复设置失败：{error}"); }
+            return;
+        }
         *state.settings_open.lock().expect("view state poisoned") = true;
         if !was_open {
             if let Ok(position) = display_window::position(&win) {
@@ -45,9 +55,8 @@ fn open_settings_window(app: &AppHandle) {
         // 只保留一个 WebView：设置页复用主窗口，避免 WebView2 启动资源冲突。
         let _ = win.set_size(tauri::LogicalSize::new(400.0, 600.0));
         let _ = win.center();
-        let _ = win.show();
-        let _ = win.set_focus();
         app.emit_to("main", "open-settings", ()).ok();
+        if let Err(error) = visibility::show(app) { eprintln!("显示设置失败：{error}"); }
     }
 }
 
@@ -56,7 +65,7 @@ fn open_settings_window(app: &AppHandle) {
 // ---------------------------------------------------------------------------
 
 fn create_tray(app: &AppHandle) -> tauri::Result<()> {
-    let show = MenuItem::with_id(app, "show", "显示小组件", true, None::<&str>)?;
+    let show = MenuItem::with_id(app, "show", "显示 / 恢复窗口", true, None::<&str>)?;
     let settings = MenuItem::with_id(app, "settings", "设置", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "退出程序", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&show, &settings, &quit])?;
@@ -68,8 +77,8 @@ fn create_tray(app: &AppHandle) -> tauri::Result<()> {
         .menu(&menu)
         .show_menu_on_left_click(false)
         .on_menu_event(|app, event| match event.id().as_ref() {
-            "show" => show_main(app),
-            "settings" => open_settings_window(app),
+            "show" => { if let Err(error) = visibility::show(app) { eprintln!("恢复窗口失败：{error}"); } },
+            "settings" => open_settings_window(app, false),
             "quit" => app.exit(0),
             _ => {}
         })
@@ -80,7 +89,7 @@ fn create_tray(app: &AppHandle) -> tauri::Result<()> {
                 ..
             } = event
             {
-                show_main(tray.app_handle());
+                if let Err(error) = visibility::show(tray.app_handle()) { eprintln!("恢复窗口失败：{error}"); }
             }
         })
         .build(app)?;
@@ -212,14 +221,12 @@ fn set_window_mode(app: AppHandle, window_mode: WindowMode) -> Result<DisplayPre
 
 #[tauri::command]
 fn open_settings(app: AppHandle) {
-    open_settings_window(&app);
+    open_settings_window(&app, false);
 }
 
 #[tauri::command]
-fn hide_main(app: AppHandle) {
-    if let Some(win) = app.get_webview_window("main") {
-        let _ = win.hide();
-    }
+fn hide_main(app: AppHandle) -> Result<(), String> {
+    visibility::hide(&app)
 }
 
 #[tauri::command]
@@ -233,6 +240,7 @@ fn hide_settings(app: AppHandle) {
 
 pub fn run() {
     let data = config::load_data();
+    let shortcut_enabled = data.shortcut_enabled;
     let settings_valid = data
         .settings
         .as_ref()
@@ -242,8 +250,11 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(updater::UpdateState::default())
+        .manage(visibility::VisibilityState::default())
+        .manage(shortcut::ShortcutRuntime::default())
         .manage(AppState {
             data: Mutex::new(data),
+            // Ignore queued startup/centering moves until the first view is placed.
             settings_open: Mutex::new(true),
         })
         .invoke_handler(tauri::generate_handler![
@@ -256,6 +267,10 @@ pub fn run() {
             open_settings,
             hide_main,
             hide_settings,
+            visibility::get_main_visibility,
+            visibility::toggle_main_visibility,
+            shortcut::get_shortcut_status,
+            shortcut::set_shortcut_enabled,
             updater::check_update,
             updater::install_update,
             updater::list_config_backups,
@@ -273,9 +288,13 @@ pub fn run() {
                 .duration_since(UNIX_EPOCH)
                 .map(|value| value.as_nanos())
                 .unwrap_or(0);
-            let data_directory = dirs::data_local_dir()
+            #[cfg(feature = "isolated-test")]
+            let session_root = config::isolated_test_root();
+            #[cfg(not(feature = "isolated-test"))]
+            let session_root = dirs::data_local_dir()
                 .unwrap_or_else(|| std::env::temp_dir())
-                .join("earn-today")
+                .join("earn-today");
+            let data_directory = session_root
                 .join("webview-sessions")
                 .join(format!("{}-{}", std::process::id(), startup_key));
 
@@ -295,11 +314,13 @@ pub fn run() {
                 .build()?;
 
             create_tray(&handle).expect("创建系统托盘失败");
+            shortcut::initialize(&handle, shortcut_enabled);
             if settings_valid {
-                restore_main_window(&handle, true)?;
+                restore_main_window(&handle, false)?;
+                visibility::show(&handle).map_err(std::io::Error::other)?;
             } else {
                 // 首次启动或已有配置无效：直接引导设置
-                open_settings_window(&handle);
+                open_settings_window(&handle, true);
             }
             Ok(())
         })
@@ -307,7 +328,7 @@ pub fn run() {
             if let WindowEvent::CloseRequested { api, .. } = event {
                 // 点关闭 = 隐藏窗口，程序驻留托盘，只有托盘菜单可真正退出
                 api.prevent_close();
-                let _ = window.hide();
+                if let Err(error) = visibility::hide(window.app_handle()) { eprintln!("隐藏窗口失败：{error}"); }
             }
             if let WindowEvent::Moved(position) = event {
                 let state = window.state::<AppState>();

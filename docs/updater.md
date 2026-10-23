@@ -6,6 +6,16 @@
 
 ## 1. 旧版审计
 
+### 0.3.1 候选准备（2026-10-23）
+
+当前正式 Latest 仍为上文 v0.3.0；本轮将源码版本同步为 0.3.1，准备候选，尚未对外发布。
+
+候选包含设置页布局调整、Ctrl+Shift+H 全局隐藏/恢复、设置草稿无损恢复及隐藏后的动画暂停。用户已对本地 0.3.0 体验构建确认快捷键和草稿保留正常，详见 [隐藏与恢复交付记录](visibility.md)。
+
+本轮沿用现有 `release.yml` 的 candidate 输出与 `validate-update-e2e.yml` 真实更新验收。签名仍只在 GitHub runner 使用已有 Secrets，应用身份、用户配置路径、安装范围、公钥及既有正式 Release 保持原设计。配置保留比较加入 `shortcutEnabled`，并在验收数据中显式关闭快捷键，防止 false 被误当缺失。
+
+候选构建、签名和升级结果待本轮运行完成后补录。正式公开发布在候选验收通过后另行确认。
+
 用户确认实际分发包为仓库 [v0.2.0 Release](https://github.com/a805930382123-yper/earntoday/releases/tag/v0.2.0)。已下载其 `EarnToday_0.2.0_x64-setup.exe`，未在当前真实用户配置上运行安装器。
 
 - 文件大小：27,160,244 bytes。

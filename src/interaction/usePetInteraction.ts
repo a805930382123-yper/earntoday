@@ -22,9 +22,9 @@ function decodeReaction(src: string): Promise<void> {
   return promise;
 }
 
-export function usePetInteraction(theme: SkinTheme, state: WorkState, windowMode: WindowMode, ready: boolean): PetInteraction {
+export function usePetInteraction(theme: SkinTheme, state: WorkState, windowMode: WindowMode, ready: boolean, lifecycle = ""): PetInteraction {
   const pose: ReactionPose | null = state === "working" ? "working" : state === "lunch" ? "lunch" : state === "after" ? "finished" : null;
-  const scope = `${theme.id}:${state}:${windowMode}:${ready}`;
+  const scope = `${theme.id}:${state}:${windowMode}:${ready}:${lifecycle}`;
   const [active, setActive] = useState<ActivePetReaction | null>(null);
   const loaded = useRef(new Set<string>());
   const timer = useRef<number>();

@@ -6,6 +6,7 @@ import { invoke } from "./tauri";
 import { ThemeProvider } from "./themes/ThemeProvider";
 import { DisplayProvider } from "./display/DisplayProvider";
 import { UpdateProvider } from "./update/UpdateProvider";
+import { VisibilityProvider } from "./display/VisibilityProvider";
 
 type TauriWindowMetadata = {
   currentWindow?: { label?: string };
@@ -60,5 +61,5 @@ export default function App() {
     };
   }, []);
 
-  return <DisplayProvider><ThemeProvider><UpdateProvider showNotice={view !== "settings"}>{view === "settings" ? <Settings /> : <Widget />}</UpdateProvider></ThemeProvider></DisplayProvider>;
+  return <VisibilityProvider><DisplayProvider><ThemeProvider><UpdateProvider showNotice={view !== "settings"}>{view === "settings" ? <Settings /> : <Widget />}</UpdateProvider></ThemeProvider></DisplayProvider></VisibilityProvider>;
 }

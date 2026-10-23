@@ -34,7 +34,7 @@ const productVersion = () => powershell("(Get-Item -LiteralPath $env:EARN_TEST_E
 const stopInstalledCopies = () => powershell("Get-Process | Where-Object { $_.ProcessName -eq 'earn-today' -and $_.Path -eq $env:EARN_TEST_EXE } | Stop-Process -Force");
 const runningCopies = () => JSON.parse(powershell("@{count=@(Get-Process 'earn-today' -ErrorAction SilentlyContinue | Where-Object Path -eq $env:EARN_TEST_EXE).Count} | ConvertTo-Json -Compress")).count;
 const config = async () => JSON.parse(await readFile(configPath, "utf8"));
-const preferenceKeys = ["settings", "selectedThemeId", "windowMode", "privacyMode", "displayMode", "fullPosition", "positionScale", "fullPositionScale"];
+const preferenceKeys = ["settings", "selectedThemeId", "windowMode", "privacyMode", "displayMode", "shortcutEnabled", "fullPosition", "positionScale", "fullPositionScale"];
 const preferences = data => Object.fromEntries(preferenceKeys.map(k => [k, data[k]]));
 const safeInvoke = (app, command, args = {}, timeoutMs = 45000) => app.evaluate(`window.__TAURI_INTERNALS__.invoke(${JSON.stringify(command)},${JSON.stringify(args)}).then(value=>({ok:true,value}),error=>({ok:false,error:String(error)}))`, timeoutMs);
 const showSettings = async app => {
@@ -75,6 +75,7 @@ try {
   await app.invoke("save_theme", { selectedThemeId: "mibao" });
   await app.invoke("set_privacy_mode", { privacyMode: "hidden" });
   await app.invoke("set_window_mode", { windowMode: "mini" });
+  await app.invoke("set_shortcut_enabled", { enabled: false });
   await app.invoke("open_settings"); await pause(1800);
   baseline = await config();
   await app.stop();

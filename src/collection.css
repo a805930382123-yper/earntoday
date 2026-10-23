@@ -58,10 +58,6 @@
 .display-mode-options input:checked + span { border-color: var(--blue-deep); background: var(--porcelain-deep); color: var(--blue-deep); font-weight: 700; }
 .display-mode-options input:focus-visible + span { outline: 2px solid var(--blue-deep); outline-offset: 2px; }
 .display-mode-picker p { font-size: 10px; line-height: 15px; color: var(--skin-label,#48657e); margin-top: 3px; }
-/* Recover space for the new control inside the existing 400×600 settings window. */
-.salary-settings-card .settings-portrait { height: 56px; width: 104px; margin-bottom: 0; }
-.salary-settings-card .settings-head h1 { font-size: 17px; line-height: 22px; }
-.salary-settings-card .preview { padding: 6px 10px; margin-bottom: 8px; }
 @media (prefers-reduced-motion: reduce) {
   .collection-deposit { display: none; animation: none; }
   .collection-grains { animation: none; }

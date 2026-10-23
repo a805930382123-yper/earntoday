@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useVisibleClock, useWindowVisibility } from "../display/VisibilityProvider";
 import { invoke } from "../tauri";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
@@ -112,7 +113,8 @@ export function Widget() {
   const hidden = privacyMode === "hidden";
   const collection = displayMode === "collection" && !hidden;
   const [settings, setSettings] = useState<SalarySettings | null>(null);
-  const [now, setNow] = useState(() => new Date());
+  const now = useVisibleClock();
+  const { visible, generation } = useWindowVisibility();
   const [celebrate, setCelebrate] = useState(false);
 
   const loadSettings = useCallback(async () => {
@@ -126,17 +128,15 @@ export function Widget() {
 
   useEffect(() => {
     loadSettings();
-    const timer = window.setInterval(() => setNow(new Date()), 1000);
     const un = listen("settings-updated", () => loadSettings());
     return () => {
-      window.clearInterval(timer);
       un.then((f) => f());
     };
   }, [loadSettings]);
 
   const s = settings ?? DEFAULT_SETTINGS;
   const state = settings ? workState(now, s) : "before";
-  const interaction = usePetInteraction(theme, state, windowMode, ready);
+  const interaction = usePetInteraction(theme, state, windowMode, ready && visible, `${generation}:${privacyMode}:${displayMode}`);
   const money = settings ? earnedAmount(now, s) : 0;
   const progress = settings ? workProgress(now, s) : 0;
   const worked = settings ? formatDuration(effectiveWorkedMinutes(now, s)) : "0m";
@@ -144,19 +144,20 @@ export function Widget() {
   const dayKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
   const stage = collectionStage(progress, state);
   const deposit = useCollection({ stage, state, time: now.getTime(), day: dayKey,
-    scope: JSON.stringify([theme.id, windowMode, displayMode, privacyMode, settings]),
-    enabled: ready && collection && !!settings && (state === "working" || state === "after") });
+    scope: JSON.stringify([generation, theme.id, windowMode, displayMode, privacyMode, settings]),
+    enabled: visible && ready && collection && !!settings && (state === "working" || state === "after") });
 
+  const previousWork = useRef<{ state: string; day: string; generation: string; time: number } | null>(null);
+  const activeCelebration = celebrate && previousWork.current?.generation === generation && previousWork.current?.day === dayKey;
   useEffect(() => {
-    if (state !== "after") {
-      setCelebrate(false);
-      return;
-    }
-    if (!celebratedDays.has(dayKey)) {
-      celebratedDays.add(dayKey);
-      setCelebrate(true);
-    }
-  }, [state, dayKey]);
+    const previous = previousWork.current;
+    const entersAfter = visible && state === "after" && previous?.state === "working" &&
+      previous.day === dayKey && previous.generation === generation &&
+      now.getTime() - previous.time > 0 && now.getTime() - previous.time <= 2500;
+    if (!visible || state !== "after" || previous?.generation !== generation) setCelebrate(false);
+    if (entersAfter && !celebratedDays.has(dayKey)) { celebratedDays.add(dayKey); setCelebrate(true); }
+    previousWork.current = visible ? { state, day: dayKey, generation, time: now.getTime() } : null;
+  }, [visible, state, dayKey, generation, now]);
 
   const moneyText = money.toFixed(2);
   const [int, dec] = moneyText.split(".");
@@ -262,7 +263,7 @@ export function Widget() {
         </div>}
       </div>
       {state === "after" && (
-        <div className={`after-work-note${celebrate && !collection ? " note-enter" : ""}`} role="status">
+        <div className={`after-work-note${activeCelebration && !collection ? " note-enter" : ""}`} role="status">
           <CatIcon />
           <span>下班！又是美好的一天</span>
           <span className="note-heart" aria-hidden="true">{theme.decorations.noteSymbol}</span>

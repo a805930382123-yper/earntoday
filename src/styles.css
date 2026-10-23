@@ -164,16 +164,29 @@ body {
   margin-bottom: 10px;
 }
 
-/* Keep the salary page compact in the existing 400×600 settings window. */
+/* Give the companion a full portrait beneath the toolbar, within 400×600. */
 .salary-settings-card { padding: 10px 20px 8px; }
-.salary-settings-card .settings-portrait { width: 170px; height: 116px; margin-bottom: 4px; }
-.salary-settings-card .settings-head { margin-bottom: 8px; }
+.salary-settings-card .settings-portrait { width: 204px; height: 116px; margin-bottom: 2px; }
+.salary-settings-card .settings-head { padding-top: 34px; margin-bottom: 6px; }
+.salary-settings-card .theme-entry { top: 10px; left: 20px; width: auto; max-width: calc(100% - 76px); min-height: 32px; padding: 4px 8px; border-radius: 10px; }
+.salary-settings-card .theme-entry > span:nth-child(2) { display: flex; align-items: center; gap: 6px; }
+.salary-settings-card .theme-entry small { font-size: 10px; }
+.salary-settings-card .close-btn { top: 10px; right: 16px; }
 .salary-settings-card .settings-head h1 { font-size: 19px; line-height: 24px; }
-.salary-settings-card .settings-head .subtitle { font-size: 11px; line-height: 15px; }
-.salary-settings-card .field-row { margin-bottom: 6px; }
-.salary-settings-card .field input { height: 34px; }
-.salary-settings-card .work-hours-hint { margin-bottom: 8px; }
-.salary-settings-card .preview { padding: 8px 12px; margin-bottom: 10px; }
+.salary-settings-card .settings-head .subtitle { font-size: 11px; line-height: 15px; margin-top: 1px; }
+.salary-settings-card .display-mode-picker { margin-bottom: 5px; }
+.salary-settings-card .display-mode-picker legend { float: left; width: 62px; line-height: 28px; }
+.salary-settings-card .display-mode-options { margin-left: 62px; }
+.salary-settings-card .display-mode-picker p { clear: both; margin-top: 1px; line-height: 13px; }
+.salary-settings-card .field-row { margin-bottom: 3px; }
+.salary-settings-card .field { gap: 2px; }
+.salary-settings-card .field input { height: 32px; }
+.salary-settings-card .work-weekdays { margin-bottom: 5px; }
+.salary-settings-card .work-weekdays legend { line-height: 18px; }
+.salary-settings-card .work-weekdays #weekdays-purpose { margin-top: 3px; line-height: 13px; }
+.salary-settings-card .work-hours-hint { font-size: 11px; line-height: 14px; margin: 0 0 4px; }
+.salary-settings-card .preview { padding: 6px 10px; margin-bottom: 5px; }
+.salary-settings-card .preview-values { gap: 12px; }
 .salary-settings-card .primary-btn { height: 40px; }
 .work-weekdays { position: relative; min-width: 0; border: 0; padding: 0; margin: 0 0 8px; }
 .work-weekdays legend { padding: 0; font-size: 12px; line-height: 20px; font-weight: 600; color: var(--skin-label,#48657e); }
@@ -355,4 +368,11 @@ body {
   .progress-fill {
     transition: none;
   }
+}
+/* Native hide does not reliably produce document.visibilitychange in WebView2. */
+html[data-window-visible="false"] *,
+html[data-window-visible="false"] *::before,
+html[data-window-visible="false"] *::after {
+  animation: none !important;
+  transition: none !important;
 }

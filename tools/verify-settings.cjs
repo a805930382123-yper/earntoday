@@ -19,7 +19,10 @@ async function prepare(page) {
       transformCallback(callback) { callbacks.set(++id, callback); return id; },
       unregisterCallback: callbackId => callbacks.delete(callbackId),
       async invoke(cmd, args) {
+        if (cmd === 'get_main_visibility') return { visible: true, revision: 0 };
+        if (cmd === 'get_shortcut_status') return { enabled: true, registered: true, error: null };
         if (cmd === 'load_data') return { settings: { ...settings }, position: null };
+        if (cmd === 'check_update') return null;
         if (cmd === 'plugin:event|listen') { const eventId = ++id; listeners.set(eventId, { ...args, id: eventId }); return eventId; }
         if (cmd === 'plugin:event|unlisten') { listeners.delete(args.eventId); return; }
         if (cmd === 'open_settings') { await window.__resizeTestWindow(400, 600); emit('open-settings'); return; }
@@ -42,13 +45,16 @@ async function prepare(page) {
 async function checkLayout(page) {
   assert.equal(await page.locator('form input:not([type="radio"])').count(), 6);
   const portrait = await page.locator('.settings-portrait').boundingBox();
-  assert.equal(portrait.width, 104);
-  assert.equal(portrait.height, 56);
+  assert.equal(portrait.width, 204);
+  assert.equal(portrait.height, 116);
   const title = await page.locator('.settings-head h1').boundingBox();
   assert.ok(portrait.y + portrait.height <= title.y, 'Character overlaps title');
   const save = await page.getByRole('button', { name: '保存设置' }).boundingBox();
   assert.ok(save.y + save.height <= 600, 'Save button is clipped');
-  assert.equal(await page.locator('.settings-shell').evaluate(el => el.scrollHeight <= el.clientHeight), true, 'Normal form should fit without scrolling');
+  const form = await page.locator('form').boundingBox();
+  assert.ok(form.y + form.height <= 588, 'Main form should fit before the optional update and backup panels');
+  const theme = await page.getByRole('button', { name: '皮肤主题', exact: true }).boundingBox();
+  assert.ok(theme.y + theme.height <= portrait.y, 'Theme toolbar overlaps the portrait');
   const close = await page.getByRole('button', { name: '关闭设置' }).boundingBox();
   const closeIsTopmost = await page.evaluate(({ x, y, width, height }) => document.elementFromPoint(x + width / 2, y + height / 2)?.closest('button')?.getAttribute('aria-label') === '关闭设置', close);
   assert.ok(closeIsTopmost, 'Close button is covered');

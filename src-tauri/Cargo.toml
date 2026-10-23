@@ -1,6 +1,6 @@
 [package]
 name = "earn-today"
-version = "0.3.0"
+version = "0.3.1"
 description = "今天又赚了多少 - 可爱蓝发女孩桌面工资小组件"
 authors = ["you"]
 edition = "2021"
@@ -17,6 +17,8 @@ tauri-build = { version = "2", features = [] }
 # `tauri dev` disables default features to keep hot reload available.
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
+# Explicit opt-in for native acceptance in a disposable temporary profile.
+isolated-test = []
 
 [dependencies]
 tauri = { version = "2", features = ["tray-icon", "image-png"] }
@@ -24,6 +26,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 dirs = "6"
 tauri-plugin-updater = "2"
+tauri-plugin-global-shortcut = "2"
 tempfile = "3"
 
 [profile.release]

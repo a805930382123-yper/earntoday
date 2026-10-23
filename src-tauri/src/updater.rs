@@ -175,5 +175,7 @@ pub fn restore_config_backup(app: AppHandle, id: String) -> Result<(), String> {
     )
     .ok();
     app.emit("settings-updated", ()).ok();
+    drop(data);
+    if let Err(error) = crate::shortcut::reload_preference(&app) { eprintln!("配置已恢复，快捷键暂不可用：{error}"); }
     Ok(())
 }

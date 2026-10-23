@@ -5,6 +5,7 @@ import { ThemePicker, PaletteIcon } from "./ThemePicker";
 import { WorkWeekdays } from "./WorkWeekdays";
 import { UpdatePanel } from "../update/UpdateProvider";
 import { BackupPanel } from "../update/BackupPanel";
+import { ShortcutPanel } from "../display/ShortcutPanel";
 import { useDisplay, type DisplayMode } from "../display/DisplayProvider";
 import {
   DEFAULT_SETTINGS,
@@ -233,6 +234,7 @@ export function Settings() {
         </form>
         <UpdatePanel unsaved={isFirstRun || !!loadError || baseline !== JSON.stringify({ settings: parsed, displayMode })} />
         <BackupPanel />
+        <ShortcutPanel />
       </div>
     </div>
   );

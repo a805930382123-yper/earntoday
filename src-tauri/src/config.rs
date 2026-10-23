@@ -55,7 +55,7 @@ pub struct DisplayPreferences {
     pub display_mode: DisplayMode,
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AppData {
     #[serde(default)]
@@ -76,11 +76,27 @@ pub struct AppData {
     pub position_scale: Option<f64>,
     #[serde(default)]
     pub full_position_scale: Option<f64>,
+    #[serde(default = "default_shortcut_enabled")]
+    pub shortcut_enabled: bool,
     // Report failures to the UI; this transient diagnostic is never persisted.
     #[serde(default, skip_deserializing, skip_serializing_if = "Option::is_none")]
     pub config_error: Option<String>,
     #[serde(default, flatten)]
     pub extra: BTreeMap<String, serde_json::Value>,
+}
+
+fn default_shortcut_enabled() -> bool { true }
+
+impl Default for AppData {
+    fn default() -> Self {
+        Self {
+            settings: None, position: None, selected_theme_id: None,
+            window_mode: WindowMode::Full, privacy_mode: PrivacyMode::Visible,
+            display_mode: DisplayMode::Amount, full_position: None,
+            position_scale: None, full_position_scale: None, shortcut_enabled: true,
+            config_error: None, extra: BTreeMap::new(),
+        }
+    }
 }
 
 impl AppData {
@@ -109,10 +125,24 @@ pub struct AppState {
 }
 
 pub fn config_path() -> PathBuf {
+    #[cfg(feature = "isolated-test")]
+    return isolated_test_root().join("earn-today/config.json");
+    #[cfg(not(feature = "isolated-test"))]
     dirs::config_dir()
         .unwrap_or_else(|| PathBuf::from("."))
         .join("earn-today")
         .join("config.json")
+}
+
+// This override does not exist in ordinary builds. Test executables refuse to
+// start unless explicitly pointed at a marked directory inside the OS temp root.
+#[cfg(feature = "isolated-test")]
+pub fn isolated_test_root() -> PathBuf {
+    let root = PathBuf::from(std::env::var_os("EARN_TODAY_TEST_ROOT").expect("isolated-test requires EARN_TODAY_TEST_ROOT"));
+    let root = root.canonicalize().expect("test root must already exist");
+    let temp = std::env::temp_dir().canonicalize().expect("temp directory unavailable");
+    assert!(root.starts_with(&temp) && root != temp && root.join(".earn-today-test-profile").is_file(), "refusing a non-temporary test profile");
+    root
 }
 
 pub fn load_data() -> AppData {
@@ -319,6 +349,25 @@ mod theme_tests {
         assert_eq!(data.privacy_mode, PrivacyMode::Visible);
         assert_eq!(data.display_mode, DisplayMode::Amount);
         assert!(data.config_error.is_none());
+        assert!(data.shortcut_enabled);
+    }
+
+    #[test]
+    fn explicit_disabled_shortcut_is_not_treated_as_missing() {
+        assert!(AppData::default().shortcut_enabled);
+        let mut value = legacy();
+        value["shortcutEnabled"] = serde_json::json!(false);
+        value["futureFlag"] = serde_json::json!(false);
+        let data = parse_data(&value.to_string());
+        assert!(!data.shortcut_enabled);
+        let saved = serde_json::to_value(&data).unwrap();
+        assert_eq!(saved["shortcutEnabled"], false);
+        assert_eq!(saved["futureFlag"], false);
+        assert_eq!(saved["settings"]["monthlySalary"].as_f64(), value["settings"]["monthlySalary"].as_f64());
+        for key in ["workdaysPerMonth", "workStart", "workEnd", "lunchStart", "lunchEnd"] {
+            assert_eq!(saved["settings"][key], value["settings"][key]);
+        }
+        assert_eq!(saved["settings"]["workWeekdays"], serde_json::json!([1,2,3,4,5]));
     }
 
     #[test]
