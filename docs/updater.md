@@ -6,7 +6,7 @@
 
 ## 1. 旧版审计
 
-### 0.3.1 候选准备（2026-10-23）
+### 0.3.1 候选验收通过（2026-10-23，尚未公开发布）
 
 当前正式 Latest 仍为上文 v0.3.0；本轮将源码版本同步为 0.3.1，准备候选，尚未对外发布。
 
@@ -14,7 +14,20 @@
 
 本轮沿用现有 `release.yml` 的 candidate 输出与 `validate-update-e2e.yml` 真实更新验收。签名仍只在 GitHub runner 使用已有 Secrets，应用身份、用户配置路径、安装范围、公钥及既有正式 Release 保持原设计。配置保留比较加入 `shortcutEnabled`，并在验收数据中显式关闭快捷键，防止 false 被误当缺失。
 
-候选构建、签名和升级结果待本轮运行完成后补录。正式公开发布在候选验收通过后另行确认。
+固定来源提交：`32255a0216bc6f16b5d091201c442a64fd499e30`。通过 Git Data API 同步时已核对远端内容树与本地候选提交完全一致，未强制覆盖远端分支。截图和本地 EXE 未加入源码提交。
+
+| 项目 | 本轮结果 |
+| --- | --- |
+| 正式签名候选 | [39917925083](https://github.com/a805930382123-yper/earntoday/actions/runs/39917925083) success；Windows 签名 NSIS 构建、签名/可信版本验证、真实 v0.2.0 → 0.3.1 覆盖安装与配置保留通过，publish 作业 skipped |
+| 真实应用内更新回归 | [39917974516](https://github.com/a805930382123-yper/earntoday/actions/runs/39917974516) success；0.3.1 → `0.3.2-updater-test.39917974516.1` 的下载、安装、自动重启、配置/checkpoint 和既有异常用例通过 |
+| 既有隔离覆盖作业 | [39917865327](https://github.com/a805930382123-yper/earntoday/actions/runs/39917865327) success |
+| 测试清理 | 临时测试 Release/标签与 runner 证书清理步骤 success；结果记录 `productionLatestChanged: false` |
+| 候选文件 | `EarnToday_0.3.1_x64-setup.exe`，33,146,711 bytes；SHA-256：`90b0ed8d2568ba5f7e81cda968f86d475105b174c173cc729d5ab8bcf18599ad` |
+| Artifact | `signed-windows-candidate`，ID `12485738560`；ZIP SHA-256：`b89b2c7a2c0db0bd5986152a1e9d380079c48b32dd7389391f2c3afcf113aed6` |
+
+本地已下载并核对 ZIP 与 GitHub artifact 摘要、安装包与 `.sha256`、`latest.json` 的版本/下载地址及签名字段与 `.sig` 一致。CI 使用既有生产公钥完成签名验证；本地未读取生产私钥或运行安装器。文件保存在 `artifacts/release-candidate-0.3.1/files/`，验收 JSON 在同级 `validation/result.json`，本地核对记录为 `verification.json`。
+
+上述两条真实升级路径分别记录，不将隔离测试版本间升级表述为正式 v0.3.0 → 该候选包的应用内升级。当前正式 Latest 仍为 v0.3.0；0.3.1 尚无公开 Release。正式公开发布需用户确认，之后走现有候选晋级流程，复用本次已验收文件。
 
 用户确认实际分发包为仓库 [v0.2.0 Release](https://github.com/a805930382123-yper/earntoday/releases/tag/v0.2.0)。已下载其 `EarnToday_0.2.0_x64-setup.exe`，未在当前真实用户配置上运行安装器。
 
