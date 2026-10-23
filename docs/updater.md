@@ -1,14 +1,14 @@
 # 自动更新与旧版配置保护交付记录
 
-状态（2026-10-22）：**[v0.3.0 已正式发布并设为 Latest](https://github.com/a805930382123-yper/earntoday/releases/tag/v0.3.0)**。用户已生成并保存生产签名密钥，GitHub 两项 Secrets 和公钥变量已配置。生产签名、真实 v0.2.0 覆盖安装、应用内下载安装/自动重启/配置保留及异常验收均已通过；正式包直接复用已验收候选，未重新构建。构建与单元测试不能代替下文的实际升级记录。
+状态（2026-10-23）：**[v0.3.1 已正式发布并设为 Latest](https://github.com/a805930382123-yper/earntoday/releases/tag/v0.3.1)**。用户确认后，直接复用已验收的生产签名候选，未重新构建。[正式发布与公开下载复核 39923265665](https://github.com/a805930382123-yper/earntoday/actions/runs/39923265665) 成功，五个公开资产和 Latest 元数据均与候选字节一致。既有生产密钥继续沿用。构建与单元测试不能代替下文的实际升级记录。
 
-**[下载正式 Windows 安装包](https://github.com/a805930382123-yper/earntoday/releases/download/v0.3.0/EarnToday_0.3.0_x64-setup.exe)**。大小 33,117,475 bytes；SHA-256：`45f487af7a0e7c7fe86cef6b5569768c858195c0682db7b88d1148ba57219fc5`。
+**[下载正式 Windows 安装包](https://github.com/a805930382123-yper/earntoday/releases/download/v0.3.1/EarnToday_0.3.1_x64-setup.exe)**。大小 33,146,711 bytes；SHA-256：`90b0ed8d2568ba5f7e81cda968f86d475105b174c173cc729d5ab8bcf18599ad`。
 
 ## 1. 旧版审计
 
-### 0.3.1 候选验收通过（2026-10-23，尚未公开发布）
+### 0.3.1 验收与正式发布（2026-10-23）
 
-当前正式 Latest 仍为上文 v0.3.0；本轮将源码版本同步为 0.3.1，准备候选，尚未对外发布。
+本轮将源码版本同步为 0.3.1，完成候选与应用内更新验收后，经用户确认发布为正式 Latest。
 
 候选包含设置页布局调整、Ctrl+Shift+H 全局隐藏/恢复、设置草稿无损恢复及隐藏后的动画暂停。用户已对本地 0.3.0 体验构建确认快捷键和草稿保留正常，详见 [隐藏与恢复交付记录](visibility.md)。
 
@@ -21,13 +21,16 @@
 | 正式签名候选 | [39917925083](https://github.com/a805930382123-yper/earntoday/actions/runs/39917925083) success；Windows 签名 NSIS 构建、签名/可信版本验证、真实 v0.2.0 → 0.3.1 覆盖安装与配置保留通过，publish 作业 skipped |
 | 真实应用内更新回归 | [39917974516](https://github.com/a805930382123-yper/earntoday/actions/runs/39917974516) success；0.3.1 → `0.3.2-updater-test.39917974516.1` 的下载、安装、自动重启、配置/checkpoint 和既有异常用例通过 |
 | 既有隔离覆盖作业 | [39917865327](https://github.com/a805930382123-yper/earntoday/actions/runs/39917865327) success |
+| 正式晋级与公开复核 | [39923265665](https://github.com/a805930382123-yper/earntoday/actions/runs/39923265665) success；复用同一候选，无重新构建；五个公开文件与 Latest 元数据逐项核对通过 |
 | 测试清理 | 临时测试 Release/标签与 runner 证书清理步骤 success；结果记录 `productionLatestChanged: false` |
 | 候选文件 | `EarnToday_0.3.1_x64-setup.exe`，33,146,711 bytes；SHA-256：`90b0ed8d2568ba5f7e81cda968f86d475105b174c173cc729d5ab8bcf18599ad` |
 | Artifact | `signed-windows-candidate`，ID `12485738560`；ZIP SHA-256：`b89b2c7a2c0db0bd5986152a1e9d380079c48b32dd7389391f2c3afcf113aed6` |
 
 本地已下载并核对 ZIP 与 GitHub artifact 摘要、安装包与 `.sha256`、`latest.json` 的版本/下载地址及签名字段与 `.sig` 一致。CI 使用既有生产公钥完成签名验证；本地未读取生产私钥或运行安装器。文件保存在 `artifacts/release-candidate-0.3.1/files/`，验收 JSON 在同级 `validation/result.json`，本地核对记录为 `verification.json`。
 
-上述两条真实升级路径分别记录，不将隔离测试版本间升级表述为正式 v0.3.0 → 该候选包的应用内升级。当前正式 Latest 仍为 v0.3.0；0.3.1 尚无公开 Release。正式公开发布需用户确认，之后走现有候选晋级流程，复用本次已验收文件。
+上述两条真实升级路径分别记录，不将隔离测试版本间升级表述为正式 v0.3.0 → 该候选包的应用内升级。正式 Release ID 为 `421595432`，标签 `v0.3.1`，非草稿、非预发布，已设为 Latest。发布提交为 `25dfe50ddef9e6bb065b80605c3c9b129488fc62`，相对固定构建来源仅增加本文的验收记录；晋级流程核对后原样发布。候选阶段的 `verification.json` 保留当时尚未发布的事实，正式发布证据另存本地 `publication.json`。
+
+### v0.2.0 原分发包审计（历史记录）
 
 用户确认实际分发包为仓库 [v0.2.0 Release](https://github.com/a805930382123-yper/earntoday/releases/tag/v0.2.0)。已下载其 `EarnToday_0.2.0_x64-setup.exe`，未在当前真实用户配置上运行安装器。
 
@@ -41,7 +44,7 @@
 - 设置实际采用 **Rust JSON 文件**，不使用 localStorage / Tauri Store。WebView2 缓存不承载工资设置，无需迁移其数据目录。
 - 原工作流在 main/工作流文件推送时可能直接发布。已去掉 push 触发，仅允许人工运行，不会因为推送本次代码而向试用用户发新版。
 
-新版本候选号为 `0.3.0`，package.json、package-lock.json、Cargo.toml、Cargo.lock、tauri.conf.json 同步。
+首次自动更新交付的候选号为 `0.3.0`，当时 package.json、package-lock.json、Cargo.toml、Cargo.lock、tauri.conf.json 同步；当前正式版为 `0.3.1`。
 
 ## 2. 用户配置位置与完整字段
 
@@ -58,6 +61,7 @@
 | windowMode | full / mini | full |
 | privacyMode | visible / hidden | visible；配置损坏时运行时隐藏收入 |
 | displayMode | amount / collection | amount；这是 v0.2.0 没有的字段 |
+| shortcutEnabled | Ctrl+Shift+H 全局快捷键开关 | true；显式 false 保留 |
 | position.x / y | 当前窗口逻辑位置 | 原有居中行为 |
 | fullPosition.x / y | 正常模式位置锚点 | 原有位置回退 |
 | positionScale | 当前坐标所对应的 DPI 缩放 | 原有缩放回退 |
@@ -123,7 +127,7 @@ GitHub 建议另建 `updater-release` Environment，配置发布审批人/受保
 
 ## 6. 构建与发布流程
 
-1. 更新三个版本源及 lockfile，补写 `docs/releases/<version>.md`。当前说明为 0.3.0。
+1. 更新三个版本源及 lockfile，补写 `docs/releases/<version>.md`。当前说明为 [0.3.1](releases/0.3.1.md)。
 2. GitHub Actions 人工运行 **Windows signed updater release**，默认选择 `candidate`，不会发布 Release。
 3. 工作流执行原有测试、签名构建、安装包签名/可信版本验证，生成 `.exe`、`.exe.sig`、`.sha256`、`latest.json`，并在干净 Windows runner 上执行真实 v0.2.0 覆盖测试脚本。只有全部成功才上传候选 artifact。
 4. 下载候选包，在干净 VM 完成窗口/托盘/交互验收和下面 A/B/C 测试。不要在真实工作配置上试验卸载/清理。
@@ -133,7 +137,7 @@ GitHub 建议另建 `updater-release` Environment，配置发布审批人/受保
 
 `prepare-release.mjs` 会以公钥验证真实包的 Minisign payload 签名及可信注释签名，版本不一致/签名错误直接阻止打包元数据。CLI 最低版本固定到支持版本绑定的 2.12.1 范围；发布依赖使用 lockfile。
 
-本次正式发布使用候选运行 **39718145269** 和应用内验收 **39726725158**。Release ID 为 `420414450`，标签 `v0.3.0`，非草稿、非预发布。五个资产为安装包、`.exe.sig`、`.exe.sha256`、`latest.json` 和 `release-notes.md`；**[公开下载复核 39745637267](https://github.com/a805930382123-yper/earntoday/actions/runs/39745637267) 全部成功**，逐个从公开 URL 下载并核对候选字节，同时核对正式 Latest 元数据。草稿发布时出现过查询 404 和自动 `untagged` 标签，已修正同一条 Release、清理本次临时标签，并在工作流增加显式标签绑定及每个公开下载路径的检查；没有重签或替换安装包。
+v0.3.0 首次正式发布使用候选运行 **39718145269** 和应用内验收 **39726725158**。Release ID 为 `420414450`，标签 `v0.3.0`，非草稿、非预发布。五个资产为安装包、`.exe.sig`、`.exe.sha256`、`latest.json` 和 `release-notes.md`；**[公开下载复核 39745637267](https://github.com/a805930382123-yper/earntoday/actions/runs/39745637267) 全部成功**，逐个从公开 URL 下载并核对候选字节，同时核对正式 Latest 元数据。草稿发布时出现过查询 404 和自动 `untagged` 标签，已修正同一条 Release、清理本次临时标签，并在工作流增加显式标签绑定及每个公开下载路径的检查；没有重签或替换安装包。
 
 ## 7. 真实升级验收结果与待执行步骤
 
