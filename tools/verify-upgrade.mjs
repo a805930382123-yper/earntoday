@@ -57,6 +57,7 @@ try {
   const loaded = await app.invoke("load_data");
   for (const [key, value] of Object.entries(before)) assert.deepEqual(loaded[key], value, `Lost original field: ${key}`);
   assert.equal(loaded.displayMode, "amount", "Missing new field should receive its own default");
+  assert.equal(loaded.autonomousMotionEnabled, true, "Legacy config should receive the enabled autonomous-motion default");
   assert.ok(!loaded.configError);
   await app.invoke("save_settings", { settings: loaded.settings, displayMode: "collection" });
   await app.invoke("create_config_backup");

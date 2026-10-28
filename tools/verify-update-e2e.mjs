@@ -34,7 +34,7 @@ const productVersion = () => powershell("(Get-Item -LiteralPath $env:EARN_TEST_E
 const stopInstalledCopies = () => powershell("Get-Process | Where-Object { $_.ProcessName -eq 'earn-today' -and $_.Path -eq $env:EARN_TEST_EXE } | Stop-Process -Force");
 const runningCopies = () => JSON.parse(powershell("@{count=@(Get-Process 'earn-today' -ErrorAction SilentlyContinue | Where-Object Path -eq $env:EARN_TEST_EXE).Count} | ConvertTo-Json -Compress")).count;
 const config = async () => JSON.parse(await readFile(configPath, "utf8"));
-const preferenceKeys = ["settings", "selectedThemeId", "windowMode", "privacyMode", "displayMode", "shortcutEnabled", "fullPosition", "positionScale", "fullPositionScale"];
+const preferenceKeys = ["settings", "selectedThemeId", "windowMode", "privacyMode", "displayMode", "shortcutEnabled", "autonomousMotionEnabled", "fullPosition", "positionScale", "fullPositionScale"];
 const preferences = data => Object.fromEntries(preferenceKeys.map(k => [k, data[k]]));
 const safeInvoke = (app, command, args = {}, timeoutMs = 45000) => app.evaluate(`window.__TAURI_INTERNALS__.invoke(${JSON.stringify(command)},${JSON.stringify(args)}).then(value=>({ok:true,value}),error=>({ok:false,error:String(error)}))`, timeoutMs);
 const showSettings = async app => {
@@ -71,13 +71,14 @@ const waitCheck = async (predicate, label) => {
 try {
   assert.equal(productVersion(), ctx.lowVersion);
   app = await openNative(installed);
-  await app.invoke("save_settings", { settings: { monthlySalary: 22123.75, workdaysPerMonth: 19, workWeekdays: [1, 3, 4, 6], workStart: "07:55", workEnd: "18:35", lunchStart: "11:45", lunchEnd: "12:55" }, displayMode: "collection" });
+  await app.invoke("save_settings", { settings: { monthlySalary: 22123.75, workdaysPerMonth: 19, workWeekdays: [1, 3, 4, 6], workStart: "07:55", workEnd: "18:35", lunchStart: "11:45", lunchEnd: "12:55" }, displayMode: "collection", autonomousMotionEnabled: false });
   await app.invoke("save_theme", { selectedThemeId: "mibao" });
   await app.invoke("set_privacy_mode", { privacyMode: "hidden" });
   await app.invoke("set_window_mode", { windowMode: "mini" });
   await app.invoke("set_shortcut_enabled", { enabled: false });
   await app.invoke("open_settings"); await pause(1800);
   baseline = await config();
+  assert.equal(baseline.autonomousMotionEnabled, false, "Disabled autonomous motion must be included in upgrade preservation checks");
   await app.stop();
 
   // Real Rust request through an unreachable per-process proxy: no system network changes.
@@ -181,11 +182,12 @@ try {
   await app.invoke("restore_config_backup", { id: checkpoint.id });
   await assertPreserved(); recordPass("corrupt-config-kept-and-explicitly-restored");
   await app.stop();
-  const legacy = JSON.parse(goodBytes); delete legacy.displayMode; delete legacy.settings.workWeekdays;
+  const legacy = JSON.parse(goodBytes); delete legacy.displayMode; delete legacy.settings.workWeekdays; delete legacy.autonomousMotionEnabled;
   await writeFile(configPath, JSON.stringify(legacy)); app = await openNative(installed);
   const loaded = await app.invoke("load_data");
   assert.equal(loaded.settings.monthlySalary, baseline.settings.monthlySalary);
   assert.deepEqual(loaded.settings.workWeekdays, [1, 2, 3, 4, 5]); assert.equal(loaded.displayMode, "amount");
+  assert.equal(loaded.autonomousMotionEnabled, true, "Legacy missing motion preference receives its own default");
   recordPass("missing-and-legacy-fields-preserved");
   await app.stop(); await writeFile(configPath, goodBytes);
   const result = { passed: true, lowVersion: ctx.lowVersion, highVersion: ctx.highVersion, tests: passed, progressPhases: [...new Set(observedPhases)], productionLatestChanged: false };
