@@ -6,7 +6,7 @@
 
 **[下载最新版 Windows 安装包](https://github.com/a805930382123-yper/earntoday/releases/latest)**
 
-当前正式版：[v0.3.1](https://github.com/a805930382123-yper/earntoday/releases/tag/v0.3.1)。新增全局快捷键隐藏/恢复，保留设置草稿，并优化隐藏时的动画与设置页布局。
+当前正式版：[v0.3.2](https://github.com/a805930382123-yper/earntoday/releases/tag/v0.3.2)。新增可关闭的桌宠自主小动作：眨眼、哈欠、咪宝动耳与尾尖轻摆。已安装正式 v0.3.0/v0.3.1 的用户可在设置中“检查更新”。
 
 在发布页面下载 `EarnToday_版本号_x64-setup.exe`，双击并按提示安装，然后从开始菜单打开「今天又赚了多少」。无需安装 Node.js、Rust 或开发工具，也不需要保留项目文件夹。
 
@@ -57,7 +57,7 @@ GitHub 的「Code → Download ZIP」下载的是源码，适合开发使用。�
 
 当前源码已接入确认后的局部动画：蓝色大肥鱼慢眨眼、小哈欠，以及咪宝双耳轻动、尾尖轻摆。眨眼/动耳随机等待 30～45 秒，哈欠/摆尾随机等待 1～3 分钟；尾尖仅完整模式播放。设置中的“桌宠自主小动作”可关闭，系统减少动态效果优先。点击、拖动、隐藏窗口和特殊表情会暂停或打断动作。
 
-素材、七个实际尺寸样本和验证结果见 [自主小动作接入记录](docs/autonomous-integration/README.md)。开发预览运行 `npm run dev` 后打开 `/action-preview.html`。此处记录仓库源码进度，现有 v0.3.1 Release 安装包和应用内更新源保持原发布内容；体验新代码请运行 `npm run build:exe`。
+素材、七个实际尺寸样本和验证结果见 [自主小动作接入记录](docs/autonomous-integration/README.md)。开发预览运行 `npm run dev` 后打开 `/action-preview.html`。自主小动作已随 v0.3.2 正式发布；开发者修改源码后仍需运行 `npm run build:exe` 更新本地体验程序。
 
 ## 开发
 

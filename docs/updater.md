@@ -1,10 +1,26 @@
 # 自动更新与旧版配置保护交付记录
 
-状态（2026-10-23）：**[v0.3.1 已正式发布并设为 Latest](https://github.com/a805930382123-yper/earntoday/releases/tag/v0.3.1)**。用户确认后，直接复用已验收的生产签名候选，未重新构建。[正式发布与公开下载复核 39923265665](https://github.com/a805930382123-yper/earntoday/actions/runs/39923265665) 成功，五个公开资产和 Latest 元数据均与候选字节一致。既有生产密钥继续沿用。构建与单元测试不能代替下文的实际升级记录。
+状态（2026-10-28）：**[v0.3.2 已正式发布并设为 Latest](https://github.com/a805930382123-yper/earntoday/releases/tag/v0.3.2)**。用户明确授权通过检查更新分发后，复用已验收的生产签名候选，未在发布时重新构建。[正式发布与公开下载复核 40625174565](https://github.com/a805930382123-yper/earntoday/actions/runs/40625174565) 成功，五个公开资产和 Latest 元数据均与候选字节一致，既有生产密钥继续沿用。已独立回读应用实际使用的 `/releases/latest/download/latest.json`，返回版本 0.3.2。构建与单元测试不能代替下文的实际升级记录。
 
-**[下载正式 Windows 安装包](https://github.com/a805930382123-yper/earntoday/releases/download/v0.3.1/EarnToday_0.3.1_x64-setup.exe)**。大小 33,146,711 bytes；SHA-256：`90b0ed8d2568ba5f7e81cda968f86d475105b174c173cc729d5ab8bcf18599ad`。
+**[下载正式 Windows 安装包](https://github.com/a805930382123-yper/earntoday/releases/download/v0.3.2/EarnToday_0.3.2_x64-setup.exe)**。大小 44,301,316 bytes；SHA-256：`a2c66c18fcc7e73c299c783da0147e9c4a6c3afeef93a64463d20d823829971b`。
 
 ## 1. 旧版审计
+
+### 0.3.2 验收与正式发布（2026-10-28）
+
+发布已由用户确认的自主小动作，眨眼/动耳等待 30～45 秒，哈欠/摆尾等待 1～3 分钟；素材和播放时长沿用确认版本。源码版本、两份锁文件与 Tauri 配置同步为 0.3.2。继续使用现有生产公钥和 GitHub Secrets，应用标识、安装范围及本机配置目录不变；本机未读取生产签名私钥，也未对日常用户配置运行安装器。
+
+固定构建来源为 `49f3ba453259aa9c605cfc632a71ab244c0684e7`。正式 Release ID `426221634`，标签 `v0.3.2`，非草稿、非预发布，已设为 Latest。
+
+| 项目 | 结果 |
+| --- | --- |
+| 生产签名候选 | [40621818623](https://github.com/a805930382123-yper/earntoday/actions/runs/40621818623) success；46 项前端测试、生产构建、Rust 测试、签名及可信版本验证、真实 v0.2.0 → 0.3.2 覆盖安装与设置保留通过，候选阶段 publish skipped |
+| 真实应用内更新 | [40621840109](https://github.com/a805930382123-yper/earntoday/actions/runs/40621840109) success；0.3.2 → `0.3.3-updater-test.40621840109.1` 的真实 UI 下载、安装和自动重启通过，工资、主题、模式、隐私、趣味积累、快捷键及 `autonomousMotionEnabled: false` 保留，checkpoint 可恢复 |
+| 异常与兼容 | 上述运行的十项验收全部通过：网络不可用、坏更新源、同版/降级、错签、中断、稍后更新、实际安装重启、备份、损坏配置恢复、旧字段缺失；缺少自主开关时独立补默认 true |
+| 正式晋级 | [40625174565](https://github.com/a805930382123-yper/earntoday/actions/runs/40625174565) success；原样发布同一候选，验证五个上传资产、固定公开下载路径与 Latest 更新清单 |
+| 候选 artifact | `signed-windows-candidate`，ID `12788435336`，ZIP SHA-256 `cc0cb2fb1b22a2d0af19ac72d88f625a97bca6aa4cfb72a577c02739bd9ba400` |
+
+两条验收路径分别记录：真实 v0.2.0 覆盖到正式候选，以及当前代码 0.3.2 升至隔离递增测试版本；未将其表述为已人工执行正式 v0.3.1 → 0.3.2 应用内升级。隔离测试 Release/标签与 runner 证书清理成功，验收过程未改变正式 Latest；正式晋级由用户后续明确授权执行。公开更新清单和发布元数据已留存在本地忽略目录 `artifacts/release-candidate-0.3.2/`。
 
 ### 0.3.1 验收与正式发布（2026-10-23）
 
