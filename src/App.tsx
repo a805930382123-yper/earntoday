@@ -7,6 +7,7 @@ import { ThemeProvider } from "./themes/ThemeProvider";
 import { DisplayProvider } from "./display/DisplayProvider";
 import { UpdateProvider } from "./update/UpdateProvider";
 import { VisibilityProvider } from "./display/VisibilityProvider";
+import { AutonomousPreferences } from "./autonomous/Preferences";
 
 type TauriWindowMetadata = {
   currentWindow?: { label?: string };
@@ -61,5 +62,5 @@ export default function App() {
     };
   }, []);
 
-  return <VisibilityProvider><DisplayProvider><ThemeProvider><UpdateProvider showNotice={view !== "settings"}>{view === "settings" ? <Settings /> : <Widget />}</UpdateProvider></ThemeProvider></DisplayProvider></VisibilityProvider>;
+  return <VisibilityProvider><AutonomousPreferences><DisplayProvider><ThemeProvider><UpdateProvider showNotice={view !== "settings"}>{view === "settings" ? <Settings /> : <Widget />}</UpdateProvider></ThemeProvider></DisplayProvider></AutonomousPreferences></VisibilityProvider>;
 }

@@ -1,0 +1,148 @@
+{
+  "branch": "main",
+  "statusBefore": " M EarnToday.exe\n M docs/ui/settings-a-browser.png\n?? action-preview.html\n?? docs/action-preview/\n?? docs/action-repair/\n?? docs/flash/\n?? docs/ui/settings-balance/\n?? src/dev/\n?? tools/prepare-action-preview.py\n?? tools/record-action-preview.py\n?? tools/repair-action-assets.py\n?? tools/verify-action-preview.cjs\n?? tools/verify-repaired-assets.py\n",
+  "preview": "src/dev/action-preview.tsx",
+  "manifest": "src/dev/repaired/manifest.json",
+  "leadMs": 360,
+  "tailMs": 360,
+  "actions": {
+    "blue-blink": {
+      "base": "blue",
+      "sequence": [
+        "static",
+        "half",
+        "closed",
+        "half",
+        "static"
+      ],
+      "timing": [
+        200,
+        300,
+        200
+      ],
+      "size": [
+        1235,
+        561
+      ]
+    },
+    "blue-yawn": {
+      "base": "blue",
+      "sequence": [
+        "static",
+        "transition",
+        "yawn",
+        "transition",
+        "static"
+      ],
+      "timing": [
+        250,
+        460,
+        280
+      ],
+      "size": [
+        1235,
+        561
+      ]
+    },
+    "mibao-ear": {
+      "base": "mibao",
+      "sequence": [
+        "static",
+        "ease",
+        "near",
+        "tilt",
+        "near",
+        "ease",
+        "static"
+      ],
+      "timing": [
+        90,
+        110,
+        150,
+        120,
+        130
+      ],
+      "size": [
+        1859,
+        846
+      ]
+    },
+    "mibao-tail": {
+      "base": "mibao",
+      "sequence": [
+        "static",
+        "right",
+        "static",
+        "left",
+        "static"
+      ],
+      "timing": [
+        240,
+        200,
+        240
+      ],
+      "size": [
+        1859,
+        846
+      ]
+    }
+  },
+  "resources": [
+    {
+      "approvedSource": "src/dev/repaired/blue-blink-half.png",
+      "runtime": "src/assets/autonomous/blue-blink-half.png",
+      "bytes": 673031,
+      "sha256": "1a115dc4dfabc3bc14fe1c7c07cad9b775570374232c304643efc46684c3df72"
+    },
+    {
+      "approvedSource": "src/dev/repaired/blue-blink-closed.png",
+      "runtime": "src/assets/autonomous/blue-blink-closed.png",
+      "bytes": 670600,
+      "sha256": "7fc699f4a3396062ca36fff9d9c36e0a8121930bcb2aa959eb6b3f5bdaeb4c41"
+    },
+    {
+      "approvedSource": "src/dev/repaired/blue-yawn-transition.png",
+      "runtime": "src/assets/autonomous/blue-yawn-transition.png",
+      "bytes": 674896,
+      "sha256": "3b1ad21af1dc9d69419eca67cac6de8000b9e6167ff446577d88b6a6e5ea6366"
+    },
+    {
+      "approvedSource": "src/dev/repaired/blue-yawn-yawn.png",
+      "runtime": "src/assets/autonomous/blue-yawn-yawn.png",
+      "bytes": 674792,
+      "sha256": "a1c07f70b9ae32fb291d59fd614787030dee2a3e8bd56e995cff546a39266477"
+    },
+    {
+      "approvedSource": "src/dev/repaired/mibao-ear-ease.png",
+      "runtime": "src/assets/autonomous/mibao-ear-ease.png",
+      "bytes": 1884470,
+      "sha256": "f15de1460b3ebe02a98a98795a42e6e8d2fd5a6c80641cb3d1a4ddbfa8c7a7c7"
+    },
+    {
+      "approvedSource": "src/dev/repaired/mibao-ear-near.png",
+      "runtime": "src/assets/autonomous/mibao-ear-near.png",
+      "bytes": 1887296,
+      "sha256": "9fd93c566eacb8ac032ccb4fc7652f222e742b1f25ff92ab16f719c6a98615c7"
+    },
+    {
+      "approvedSource": "src/dev/repaired/mibao-ear-tilt.png",
+      "runtime": "src/assets/autonomous/mibao-ear-tilt.png",
+      "bytes": 1890637,
+      "sha256": "2c2c020510b1f3b1124373ea23474d08130e886de2824cac8edd87eba35e9fcf"
+    },
+    {
+      "approvedSource": "src/dev/repaired/mibao-tail-right.png",
+      "runtime": "src/assets/autonomous/mibao-tail-right.png",
+      "bytes": 1889363,
+      "sha256": "3daf2d1ec295425aebcfefbce46b7f5e91a2cc309fc364e3af6810773899a1b4"
+    },
+    {
+      "approvedSource": "src/dev/repaired/mibao-tail-left.png",
+      "runtime": "src/assets/autonomous/mibao-tail-left.png",
+      "bytes": 1890052,
+      "sha256": "121d1862c09cf64d563be7f83b61b537027b5771365d8021f7f97cd2ca719f0f"
+    }
+  ],
+  "resourceBytes": 12135137,
+  "distBeforeBytes": 31466186
+}

@@ -1,0 +1,207 @@
+{
+  "environment": "Windows native Tauri debug isolated-test / embedded production frontend / WebView2 / actual OS clock",
+  "profile": "C:\\Users\\DAVID~1.CHE\\AppData\\Local\\Temp\\earn-autonomous-sIYdRi",
+  "checks": [
+    "Native minimize and restore events synchronize visibility; initialization queries real state; production has no debug API",
+    "Same-process enabled/disabled × shown/hidden resource observations captured (5-second windows, warm caches)",
+    "Real native ear action after random wait, correct static return; hiding writes no config; restoring does not catch up",
+    "Disabled preference survives real process restart; salary, weekdays, theme, mode and future fields preserved"
+  ],
+  "samples": [
+    {
+      "enabled": true,
+      "shown": true,
+      "before": {
+        "pids": [
+          4924,
+          27388,
+          22132,
+          11796,
+          18920,
+          13748,
+          5460,
+          22136
+        ],
+        "cpuSeconds": 5.125,
+        "workingSetBytes": 496136192,
+        "sampledAt": 1793088289060,
+        "jsHeapUsed": 3015360,
+        "taskSeconds": 0.050362,
+        "scriptSeconds": 0.009659
+      },
+      "after": {
+        "pids": [
+          4924,
+          27388,
+          22132,
+          11796,
+          18920,
+          13748,
+          5460,
+          22136
+        ],
+        "cpuSeconds": 5.890625,
+        "workingSetBytes": 496136192,
+        "sampledAt": 1793088294688,
+        "jsHeapUsed": 2901512,
+        "taskSeconds": 0.104546,
+        "scriptSeconds": 0.021643
+      },
+      "elapsedSeconds": 5.628,
+      "processCpuOneCorePercent": 13.603855721393035,
+      "endWorkingSetMiB": 473.15234375,
+      "jsTaskMilliseconds": 54.184000000000005,
+      "scriptMilliseconds": 11.984
+    },
+    {
+      "enabled": false,
+      "shown": true,
+      "before": {
+        "pids": [
+          4924,
+          27388,
+          22132,
+          11796,
+          18920,
+          13748,
+          5460,
+          22136
+        ],
+        "cpuSeconds": 6.15625,
+        "workingSetBytes": 496734208,
+        "sampledAt": 1793088296746,
+        "jsHeapUsed": 3087056,
+        "taskSeconds": 0.118637,
+        "scriptSeconds": 0.023572
+      },
+      "after": {
+        "pids": [
+          4924,
+          27388,
+          22132,
+          11796,
+          18920,
+          13748,
+          5460,
+          22136
+        ],
+        "cpuSeconds": 6.546875,
+        "workingSetBytes": 497180672,
+        "sampledAt": 1793088302619,
+        "jsHeapUsed": 3414360,
+        "taskSeconds": 0.188112,
+        "scriptSeconds": 0.029732
+      },
+      "elapsedSeconds": 5.873,
+      "processCpuOneCorePercent": 6.6512004086497525,
+      "endWorkingSetMiB": 474.1484375,
+      "jsTaskMilliseconds": 69.475,
+      "scriptMilliseconds": 6.160000000000002
+    },
+    {
+      "enabled": true,
+      "shown": false,
+      "before": {
+        "pids": [
+          4924,
+          27388,
+          22132,
+          11796,
+          18920,
+          13748,
+          5460,
+          22136
+        ],
+        "cpuSeconds": 6.625,
+        "workingSetBytes": 497844224,
+        "sampledAt": 1793088304553,
+        "jsHeapUsed": 3592976,
+        "taskSeconds": 0.213227,
+        "scriptSeconds": 0.032195
+      },
+      "after": {
+        "pids": [
+          4924,
+          27388,
+          22132,
+          11796,
+          18920,
+          13748,
+          5460,
+          22136
+        ],
+        "cpuSeconds": 6.765625,
+        "workingSetBytes": 502521856,
+        "sampledAt": 1793088310296,
+        "jsHeapUsed": 3592976,
+        "taskSeconds": 0.213462,
+        "scriptSeconds": 0.032195
+      },
+      "elapsedSeconds": 5.743,
+      "processCpuOneCorePercent": 2.44863311857914,
+      "endWorkingSetMiB": 479.2421875,
+      "jsTaskMilliseconds": 0.23500000000001298,
+      "scriptMilliseconds": 0
+    },
+    {
+      "enabled": false,
+      "shown": false,
+      "before": {
+        "pids": [
+          4924,
+          27388,
+          22132,
+          11796,
+          18920,
+          13748,
+          5460,
+          22136
+        ],
+        "cpuSeconds": 7.1875,
+        "workingSetBytes": 513085440,
+        "sampledAt": 1793088318649,
+        "jsHeapUsed": 2250408,
+        "taskSeconds": 0.345864,
+        "scriptSeconds": 0.035905
+      },
+      "after": {
+        "pids": [
+          4924,
+          27388,
+          22132,
+          11796,
+          18920,
+          13748,
+          5460,
+          22136
+        ],
+        "cpuSeconds": 7.234375,
+        "workingSetBytes": 473317376,
+        "sampledAt": 1793088324388,
+        "jsHeapUsed": 2250408,
+        "taskSeconds": 0.345998,
+        "scriptSeconds": 0.035905
+      },
+      "elapsedSeconds": 5.739,
+      "processCpuOneCorePercent": 0.8167799268165186,
+      "endWorkingSetMiB": 451.390625,
+      "jsTaskMilliseconds": 0.134000000000023,
+      "scriptMilliseconds": 0
+    }
+  ],
+  "unfocusedSnapshot": {
+    "visible": true,
+    "minimized": false,
+    "focused": false
+  },
+  "nativeAutomatic": {
+    "enabledAt": 1793088324679,
+    "starts": [
+      {
+        "id": "mibao-ear",
+        "at": 1793088369690
+      }
+    ]
+  },
+  "passed": true
+}

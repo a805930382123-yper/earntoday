@@ -1,0 +1,22 @@
+{
+  "mode": "built-in image_gen",
+  "input": "edit-inputs/blue-face.png",
+  "prompts": [
+    {
+      "state": "half2",
+      "prompt": "Precise eye-local edit of the attached production face crop. This character ALREADY has sleepy open eyes. We need visibly MORE CLOSED eyes than the source: genuine HALF-CLOSED eyelids for a blink animation. In the 430x210 reference coordinate system, left eye center x110: lower its upper eyelid from around y48 to y88, keep the lower eye boundary y120 fixed. Right eye center x310: lower its upper eyelid from around y110 to y150, keep the lower boundary y178 fixed. Only a narrow strip of BLUE IRIS remains visible, around 30 pixels tall, with skin above the lowered dark-brown lid. BOTH upper lids must be visibly lowered, not merely smaller irises and not the same source face. Preserve the original diagonal tilted eye angle, tapered brown eyelash shape, the same skin color. No smiling curve, no completely closed eyes, no head movement. Do NOT change framing, hair, bangs, eyebrows, mouth, sleeve or hand outlines. One matching opaque crop, same aspect ratio. It will be used only inside precise eye masks over the original production art."
+    },
+    {
+      "state": "closed",
+      "prompt": "Precise local edit: create the fully CLOSED-EYES blink frame from this exact production face crop. Change only the two eyes. Replace each open eye/blue iris with softly shut eyelids, dark-brown tapered hand-painted lash lines matching the original linework. The closed eyelids sit near the lower part of the existing eyes and follow their exact downward-right diagonal tilt, sleepy resting closed eyes (not upward smiling arches). No visible blue iris or white eyeballs remains. Preserve exact existing face angle, facial contour, every hair strand and bang, brows, cheeks, small original mouth, cuffs and hand contours, framing and colors. Do not make a new face, do not rotate or rescale anything. Same opaque 430:210 close-up crop composition. This edited crop will only be composited through narrow eye masks over the unchanged original production PNG."
+    },
+    {
+      "state": "yawn",
+      "prompt": "Use case: precise-object-edit, a SMALL sleepy YAWN animation keyframe for this exact chibi production face crop. Keep her prone resting face, exact camera/framing, bangs, hair, skin contour, cheeks, eyebrows, sleeves and hands exactly as the reference. Edit ONLY the eye openings and the tiny visible mouth at the bottom just above the cuff. Eyes become very narrow half-closed sleepy slits with a small bit of blue iris still visible. Replace the tiny curved mouth near x180,y188 in the 430x210 crop with a restrained small vertical oval yawn centered around x190,y180, only about 24 pixels wide and 28 high at reference size: warm muted pink interior, dark rose lip edge, no teeth, no smile. Confine it to exposed skin above the existing sleeve/hand line; do not move or repaint the cuff or hands to make space. This is a soft drowsy yawn, NOT laughing, shouting or fully asleep. No whole-face deformation, no eye/hair scale change. Same opaque facial close-up crop, same aspect ratio. Only eye and mouth pixels will be used through tight masks."
+    },
+    {
+      "state": "transition",
+      "prompt": "Precise local production animation edit. Take this exact facial close-up and change ONLY the tiny visible mouth near x180,y188 in the 430x210 reference crop. Create the subtle start/end transition for a tiny sleepy yawn: a very small vertical muted-rose mouth opening, about 12 pixels wide by 13 pixels high in reference coordinates, just above the cuff at the exact existing mouth location. It should look like lips barely parting, with a shaded pink interior, not a circle symbol or laughing mouth. Do not alter eye pixels, brows, hair, skin contour, sleeves or hands; keep the exact input framing and color. Do not enlarge the mouth beyond the exposed skin and do not move the hand line. Output a single opaque cropped image with the same 430:210 composition; only the small mouth patch will be composited back over original pixels."
+    }
+  ]
+}

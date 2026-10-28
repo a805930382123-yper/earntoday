@@ -1,0 +1,8 @@
+/* Same pose box, native sizing, object fit and mask as the accepted preview. */
+.chibi-girl.autonomous-ready .chibi-base { animation: none; transition: none; transform: none; }
+.autonomous-show-frame .chibi-awake { visibility: hidden; }
+.chibi-autonomous { transition: none !important; animation: none !important; transform: none !important; }
+.autonomous-setting { margin: 7px 0; font-size: 12px; color: var(--ink); }
+.autonomous-setting label { display: flex; align-items: center; gap: 7px; cursor: pointer; }
+.autonomous-setting input { accent-color: var(--blue-deep); }
+.autonomous-setting p { font-size: 10px; line-height: 14px; color: var(--ink-soft); margin: 3px 0 0 21px; }

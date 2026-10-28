@@ -1,0 +1,182 @@
+{
+  "errors": [],
+  "writes": [],
+  "geometry": [
+    {
+      "id": "blue-blink-full",
+      "viewport": {
+        "x": 73,
+        "y": 313.78125,
+        "width": 260,
+        "height": 276
+      },
+      "character": {
+        "x": 112.75,
+        "y": 343.78125,
+        "width": 180.5,
+        "height": 81.984375
+      },
+      "images": {
+        "width": 1235,
+        "height": 561,
+        "cssWidth": "361px",
+        "left": "0px",
+        "top": "0px",
+        "transform": "none",
+        "animation": "none",
+        "transition": "0s"
+      }
+    },
+    {
+      "id": "blue-blink-mini",
+      "viewport": {
+        "x": 345,
+        "y": 313.78125,
+        "width": 260,
+        "height": 108
+      },
+      "character": {
+        "x": 291,
+        "y": 322.78125,
+        "width": 200,
+        "height": 90.84375
+      },
+      "images": {
+        "width": 1235,
+        "height": 561,
+        "cssWidth": "200px",
+        "left": "0px",
+        "top": "0px",
+        "transform": "none",
+        "animation": "none",
+        "transition": "0s"
+      }
+    },
+    {
+      "id": "blue-yawn-full",
+      "viewport": {
+        "x": 669,
+        "y": 313.78125,
+        "width": 260,
+        "height": 276
+      },
+      "character": {
+        "x": 708.75,
+        "y": 343.78125,
+        "width": 180.5,
+        "height": 81.984375
+      },
+      "images": {
+        "width": 1235,
+        "height": 561,
+        "cssWidth": "361px",
+        "left": "0px",
+        "top": "0px",
+        "transform": "none",
+        "animation": "none",
+        "transition": "0s"
+      }
+    },
+    {
+      "id": "blue-yawn-mini",
+      "viewport": {
+        "x": 941,
+        "y": 313.78125,
+        "width": 260,
+        "height": 108
+      },
+      "character": {
+        "x": 887,
+        "y": 322.78125,
+        "width": 200,
+        "height": 90.84375
+      },
+      "images": {
+        "width": 1235,
+        "height": 561,
+        "cssWidth": "200px",
+        "left": "0px",
+        "top": "0px",
+        "transform": "none",
+        "animation": "none",
+        "transition": "0s"
+      }
+    },
+    {
+      "id": "mibao-ear-full",
+      "viewport": {
+        "x": 73,
+        "y": 976.765625,
+        "width": 260,
+        "height": 276
+      },
+      "character": {
+        "x": 112.75,
+        "y": 1006.765625,
+        "width": 180.5,
+        "height": 81.984375
+      },
+      "images": {
+        "width": 1859,
+        "height": 846,
+        "cssWidth": "361px",
+        "left": "0px",
+        "top": "0px",
+        "transform": "none",
+        "animation": "none",
+        "transition": "0s"
+      }
+    },
+    {
+      "id": "mibao-ear-mini",
+      "viewport": {
+        "x": 345,
+        "y": 976.765625,
+        "width": 260,
+        "height": 108
+      },
+      "character": {
+        "x": 330,
+        "y": 985.765625,
+        "width": 200,
+        "height": 90.84375
+      },
+      "images": {
+        "width": 1859,
+        "height": 846,
+        "cssWidth": "200px",
+        "left": "0px",
+        "top": "0px",
+        "transform": "none",
+        "animation": "none",
+        "transition": "0s"
+      }
+    },
+    {
+      "id": "mibao-tail-full",
+      "viewport": {
+        "x": 669,
+        "y": 976.765625,
+        "width": 260,
+        "height": 276
+      },
+      "character": {
+        "x": 708.75,
+        "y": 1006.765625,
+        "width": 180.5,
+        "height": 81.984375
+      },
+      "images": {
+        "width": 1859,
+        "height": 846,
+        "cssWidth": "361px",
+        "left": "0px",
+        "top": "0px",
+        "transform": "none",
+        "animation": "none",
+        "transition": "0s"
+      }
+    }
+  ],
+  "checks": "PASS: 7 actual-size samples; exact original start/end URLs; unique local frames share original geometry, object-fit and mask; all playback keys checked; no autoplay; interruption cancels timers; no storage writes."
+}

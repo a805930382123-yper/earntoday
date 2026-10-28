@@ -1,4 +1,5 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, MouseEvent } from "react";
+import { interruptAutonomous } from "../autonomous/useAutonomousMotion";
 import type { WorkState } from "../salary/calc";
 import { useTheme } from "../themes/ThemeProvider";
 import { useDisplay } from "../display/DisplayProvider";
@@ -8,7 +9,7 @@ import { InteractivePet, PetBubble } from "./InteractivePet";
 import { DisplayControls, LockIcon } from "./DisplayControls";
 import { Collection } from "./Collection";
 
-export function MiniWidget({ state, mood, moneyText, status, onDragEnd, interaction, stage, deposit }: { state: WorkState; mood: GirlMood; moneyText: string; status: string; onDragEnd: () => void; interaction: PetInteraction; stage: number; deposit: { pulse: { time: number } | null; finish: () => void } }) {
+export function MiniWidget({ state, mood, moneyText, status, onDragEnd, onWindowDrag, onActivityChange, autonomousBlocked, interaction, stage, deposit }: { state: WorkState; mood: GirlMood; moneyText: string; status: string; onDragEnd: () => void; onWindowDrag: (event: MouseEvent) => void; onActivityChange: (busy: boolean) => void; autonomousBlocked: boolean; interaction: PetInteraction; stage: number; deposit: { pulse: { time: number } | null; finish: () => void } }) {
   const { theme } = useTheme();
   const { privacyMode, displayMode, error } = useDisplay();
   const hidden = privacyMode === "hidden";
@@ -19,12 +20,12 @@ export function MiniWidget({ state, mood, moneyText, status, onDragEnd, interact
   // Only format a real amount for a visible UI; no hidden copy in DOM or titles.
   const visibleMoney = hidden || collection ? null : Number(moneyText).toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const amountClass = visibleMoney && visibleMoney.length > 12 ? " mini-amount-long" : visibleMoney && visibleMoney.length > 8 ? " mini-amount-compact" : "";
-  return <div className={`mini-stage state-${state}${hidden ? " privacy-hidden" : ""}${collection ? " collection-mode" : ""}`} data-work-state={state} data-window-mode="mini" onContextMenu={e => e.preventDefault()} style={style}>
+  return <div className={`mini-stage state-${state}${hidden ? " privacy-hidden" : ""}${collection ? " collection-mode" : ""}`} data-work-state={state} data-window-mode="mini" onContextMenu={e => e.preventDefault()} style={style} onPointerDownCapture={interruptAutonomous} onKeyDownCapture={interruptAutonomous}>
     <div className="card mini-card">
       <div className="mini-theme-detail" aria-hidden="true">{theme.decorations.cardAccent ? <img src={theme.decorations.cardAccent} alt="" draggable={false} /> : <><i /><i /><i /></>}</div>
-      <div className="drag-overlay" data-tauri-drag-region onMouseUp={onDragEnd} />
+      <div className="drag-overlay" onMouseDown={onWindowDrag} />
     </div>
-    <div className="mini-pet"><InteractivePet mood={mood} width={164} interaction={interaction} mini onDragEnd={onDragEnd} stage={stage} /></div>
+    <div className="mini-pet"><InteractivePet mood={mood} width={164} interaction={interaction} mini onDragEnd={onDragEnd} stage={stage} autonomousBlocked={autonomousBlocked} onActivityChange={onActivityChange} /></div>
     <div className="mini-information">
       {collection ? <Collection stage={stage} state={state} mini pulse={deposit.pulse} onAnimationEnd={deposit.finish} interacting={!!interaction.active} /> : <><div className="mini-title">今天已经赚到</div>
       <div className={`mini-amount${hidden ? " masked-amount" : amountClass}`} aria-label={hidden ? "收入已隐藏" : undefined}>

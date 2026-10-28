@@ -1,0 +1,239 @@
+{
+  "bases": {
+    "blue": {
+      "path": "src/assets/chibi-girl-top.png",
+      "size": [
+        1235,
+        561
+      ],
+      "sha256": "2b4a815d0c6aa748a5a5d87d94cb0938a1297087ac0d4023d8e8398c9ac558a3"
+    },
+    "mibao": {
+      "path": "src/assets/mibao/working.png",
+      "size": [
+        1859,
+        846
+      ],
+      "sha256": "5c106ff631c6c6feacb9bd766110d3c0e2a689110ed79411d6e15a28ca5e9436"
+    }
+  },
+  "actions": {
+    "blue-blink": {
+      "base": "blue",
+      "allowedMask": "lossless/blue-blink-allowed.png",
+      "sequence": [
+        "static",
+        "half",
+        "closed",
+        "half",
+        "static"
+      ],
+      "timing": [
+        200,
+        300,
+        200
+      ],
+      "states": [
+        {
+          "state": "half",
+          "file": "src/dev/repaired/blue-blink-half.png",
+          "changedPixels": 24262,
+          "outsideAllowedPixels": 0,
+          "changedBounds": [
+            470,
+            325,
+            858,
+            491
+          ],
+          "alphaChangedPixels": 0
+        },
+        {
+          "state": "closed",
+          "file": "src/dev/repaired/blue-blink-closed.png",
+          "changedPixels": 24226,
+          "outsideAllowedPixels": 0,
+          "changedBounds": [
+            470,
+            325,
+            858,
+            491
+          ],
+          "alphaChangedPixels": 0
+        }
+      ],
+      "size": [
+        1235,
+        561
+      ],
+      "outsideAllowedPixels": 0,
+      "status": "candidate"
+    },
+    "blue-yawn": {
+      "base": "blue",
+      "allowedMask": "lossless/blue-yawn-allowed.png",
+      "sequence": [
+        "static",
+        "transition",
+        "yawn",
+        "transition",
+        "static"
+      ],
+      "timing": [
+        250,
+        460,
+        280
+      ],
+      "states": [
+        {
+          "state": "transition",
+          "file": "src/dev/repaired/blue-yawn-transition.png",
+          "changedPixels": 26096,
+          "outsideAllowedPixels": 0,
+          "changedBounds": [
+            470,
+            325,
+            858,
+            497
+          ],
+          "alphaChangedPixels": 0
+        },
+        {
+          "state": "yawn",
+          "file": "src/dev/repaired/blue-yawn-yawn.png",
+          "changedPixels": 26054,
+          "outsideAllowedPixels": 0,
+          "changedBounds": [
+            470,
+            325,
+            859,
+            497
+          ],
+          "alphaChangedPixels": 0
+        }
+      ],
+      "size": [
+        1235,
+        561
+      ],
+      "outsideAllowedPixels": 0,
+      "status": "candidate"
+    },
+    "mibao-ear": {
+      "base": "mibao",
+      "allowedMask": "lossless/mibao-ear-allowed.png",
+      "sequence": [
+        "static",
+        "ease",
+        "near",
+        "tilt",
+        "near",
+        "ease",
+        "static"
+      ],
+      "timing": [
+        90,
+        110,
+        150,
+        120,
+        130
+      ],
+      "states": [
+        {
+          "state": "ease",
+          "file": "src/dev/repaired/mibao-ear-ease.png",
+          "changedPixels": 96134,
+          "outsideAllowedPixels": 0,
+          "changedBounds": [
+            308,
+            0,
+            1024,
+            422
+          ],
+          "alphaChangedPixels": 28819
+        },
+        {
+          "state": "near",
+          "file": "src/dev/repaired/mibao-ear-near.png",
+          "changedPixels": 100473,
+          "outsideAllowedPixels": 0,
+          "changedBounds": [
+            307,
+            0,
+            1028,
+            422
+          ],
+          "alphaChangedPixels": 41849
+        },
+        {
+          "state": "tilt",
+          "file": "src/dev/repaired/mibao-ear-tilt.png",
+          "changedPixels": 104054,
+          "outsideAllowedPixels": 0,
+          "changedBounds": [
+            307,
+            0,
+            1033,
+            422
+          ],
+          "alphaChangedPixels": 51920
+        }
+      ],
+      "size": [
+        1859,
+        846
+      ],
+      "outsideAllowedPixels": 0,
+      "status": "candidate"
+    },
+    "mibao-tail": {
+      "base": "mibao",
+      "allowedMask": "lossless/mibao-tail-allowed.png",
+      "sequence": [
+        "static",
+        "right",
+        "static",
+        "left",
+        "static"
+      ],
+      "timing": [
+        240,
+        200,
+        240
+      ],
+      "states": [
+        {
+          "state": "right",
+          "file": "src/dev/repaired/mibao-tail-right.png",
+          "changedPixels": 66162,
+          "outsideAllowedPixels": 0,
+          "changedBounds": [
+            1297,
+            60,
+            1814,
+            325
+          ],
+          "alphaChangedPixels": 33439
+        },
+        {
+          "state": "left",
+          "file": "src/dev/repaired/mibao-tail-left.png",
+          "changedPixels": 66175,
+          "outsideAllowedPixels": 0,
+          "changedBounds": [
+            1296,
+            60,
+            1811,
+            324
+          ],
+          "alphaChangedPixels": 33427
+        }
+      ],
+      "size": [
+        1859,
+        846
+      ],
+      "outsideAllowedPixels": 0,
+      "status": "candidate"
+    }
+  }
+}

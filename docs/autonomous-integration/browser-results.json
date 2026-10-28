@@ -1,0 +1,331 @@
+{
+  "environment": "Windows / Edge headless / real React components / controlled browser clock and native bridge",
+  "manual": [
+    {
+      "sample": "blue-blink-full",
+      "bounds": {
+        "x": 39.75,
+        "y": 30,
+        "width": 180.5,
+        "height": 81.984375
+      },
+      "style": {
+        "fit": "contain",
+        "position": "50% 100%",
+        "mask": "linear-gradient(rgb(0, 0, 0) 88%, rgba(0, 0, 0, 0) 100%)"
+      },
+      "frames": [
+        {
+          "state": "static",
+          "at": 0,
+          "file": "frames/blue-blink-full-0.png"
+        },
+        {
+          "state": "half",
+          "at": 360,
+          "file": "frames/blue-blink-full-1.png"
+        },
+        {
+          "state": "closed",
+          "at": 560,
+          "file": "frames/blue-blink-full-2.png"
+        },
+        {
+          "state": "half",
+          "at": 860,
+          "file": "frames/blue-blink-full-3.png"
+        },
+        {
+          "state": "static",
+          "at": 1060,
+          "file": "frames/blue-blink-full-4.png"
+        }
+      ],
+      "duration": 1420
+    },
+    {
+      "sample": "blue-blink-mini",
+      "bounds": {
+        "x": -54,
+        "y": 9,
+        "width": 200,
+        "height": 90.84375
+      },
+      "style": {
+        "fit": "contain",
+        "position": "50% 100%",
+        "mask": "none"
+      },
+      "frames": [
+        {
+          "state": "static",
+          "at": 0,
+          "file": "frames/blue-blink-mini-0.png"
+        },
+        {
+          "state": "half",
+          "at": 360,
+          "file": "frames/blue-blink-mini-1.png"
+        },
+        {
+          "state": "closed",
+          "at": 560,
+          "file": "frames/blue-blink-mini-2.png"
+        },
+        {
+          "state": "half",
+          "at": 860,
+          "file": "frames/blue-blink-mini-3.png"
+        },
+        {
+          "state": "static",
+          "at": 1060,
+          "file": "frames/blue-blink-mini-4.png"
+        }
+      ],
+      "duration": 1420
+    },
+    {
+      "sample": "blue-yawn-full",
+      "bounds": {
+        "x": 39.75,
+        "y": 30,
+        "width": 180.5,
+        "height": 81.984375
+      },
+      "style": {
+        "fit": "contain",
+        "position": "50% 100%",
+        "mask": "linear-gradient(rgb(0, 0, 0) 88%, rgba(0, 0, 0, 0) 100%)"
+      },
+      "frames": [
+        {
+          "state": "static",
+          "at": 0,
+          "file": "frames/blue-yawn-full-0.png"
+        },
+        {
+          "state": "transition",
+          "at": 360,
+          "file": "frames/blue-yawn-full-1.png"
+        },
+        {
+          "state": "yawn",
+          "at": 610,
+          "file": "frames/blue-yawn-full-2.png"
+        },
+        {
+          "state": "transition",
+          "at": 1070,
+          "file": "frames/blue-yawn-full-3.png"
+        },
+        {
+          "state": "static",
+          "at": 1350,
+          "file": "frames/blue-yawn-full-4.png"
+        }
+      ],
+      "duration": 1710
+    },
+    {
+      "sample": "blue-yawn-mini",
+      "bounds": {
+        "x": -54,
+        "y": 9,
+        "width": 200,
+        "height": 90.84375
+      },
+      "style": {
+        "fit": "contain",
+        "position": "50% 100%",
+        "mask": "none"
+      },
+      "frames": [
+        {
+          "state": "static",
+          "at": 0,
+          "file": "frames/blue-yawn-mini-0.png"
+        },
+        {
+          "state": "transition",
+          "at": 360,
+          "file": "frames/blue-yawn-mini-1.png"
+        },
+        {
+          "state": "yawn",
+          "at": 610,
+          "file": "frames/blue-yawn-mini-2.png"
+        },
+        {
+          "state": "transition",
+          "at": 1070,
+          "file": "frames/blue-yawn-mini-3.png"
+        },
+        {
+          "state": "static",
+          "at": 1350,
+          "file": "frames/blue-yawn-mini-4.png"
+        }
+      ],
+      "duration": 1710
+    },
+    {
+      "sample": "mibao-ear-full",
+      "bounds": {
+        "x": 39.75,
+        "y": 30,
+        "width": 180.5,
+        "height": 81.984375
+      },
+      "style": {
+        "fit": "contain",
+        "position": "50% 100%",
+        "mask": "none"
+      },
+      "frames": [
+        {
+          "state": "static",
+          "at": 0,
+          "file": "frames/mibao-ear-full-0.png"
+        },
+        {
+          "state": "ease",
+          "at": 360,
+          "file": "frames/mibao-ear-full-1.png"
+        },
+        {
+          "state": "near",
+          "at": 450,
+          "file": "frames/mibao-ear-full-2.png"
+        },
+        {
+          "state": "tilt",
+          "at": 560,
+          "file": "frames/mibao-ear-full-3.png"
+        },
+        {
+          "state": "near",
+          "at": 710,
+          "file": "frames/mibao-ear-full-4.png"
+        },
+        {
+          "state": "ease",
+          "at": 830,
+          "file": "frames/mibao-ear-full-5.png"
+        },
+        {
+          "state": "static",
+          "at": 960,
+          "file": "frames/mibao-ear-full-6.png"
+        }
+      ],
+      "duration": 1320
+    },
+    {
+      "sample": "mibao-ear-mini",
+      "bounds": {
+        "x": -15,
+        "y": 9,
+        "width": 200,
+        "height": 90.84375
+      },
+      "style": {
+        "fit": "contain",
+        "position": "50% 100%",
+        "mask": "none"
+      },
+      "frames": [
+        {
+          "state": "static",
+          "at": 0,
+          "file": "frames/mibao-ear-mini-0.png"
+        },
+        {
+          "state": "ease",
+          "at": 360,
+          "file": "frames/mibao-ear-mini-1.png"
+        },
+        {
+          "state": "near",
+          "at": 450,
+          "file": "frames/mibao-ear-mini-2.png"
+        },
+        {
+          "state": "tilt",
+          "at": 560,
+          "file": "frames/mibao-ear-mini-3.png"
+        },
+        {
+          "state": "near",
+          "at": 710,
+          "file": "frames/mibao-ear-mini-4.png"
+        },
+        {
+          "state": "ease",
+          "at": 830,
+          "file": "frames/mibao-ear-mini-5.png"
+        },
+        {
+          "state": "static",
+          "at": 960,
+          "file": "frames/mibao-ear-mini-6.png"
+        }
+      ],
+      "duration": 1320
+    },
+    {
+      "sample": "mibao-tail-full",
+      "bounds": {
+        "x": 39.75,
+        "y": 30,
+        "width": 180.5,
+        "height": 81.984375
+      },
+      "style": {
+        "fit": "contain",
+        "position": "50% 100%",
+        "mask": "none"
+      },
+      "frames": [
+        {
+          "state": "static",
+          "at": 0,
+          "file": "frames/mibao-tail-full-0.png"
+        },
+        {
+          "state": "right",
+          "at": 360,
+          "file": "frames/mibao-tail-full-1.png"
+        },
+        {
+          "state": "static",
+          "at": 600,
+          "file": "frames/mibao-tail-full-2.png"
+        },
+        {
+          "state": "left",
+          "at": 800,
+          "file": "frames/mibao-tail-full-3.png"
+        },
+        {
+          "state": "static",
+          "at": 1040,
+          "file": "frames/mibao-tail-full-4.png"
+        }
+      ],
+      "duration": 1400
+    }
+  ],
+  "checks": [
+    "Seven formal-component samples: approved sizes, crops, masks, static entry/return, unchanged card, exact frames and timing",
+    "30–45-second fast action; 1–3-minute yawn not postponed by salary refresh or blinks; one waiting timer",
+    "Pointer down immediately cancels; existing click reaction takes priority; native drag lifetime blocks motion",
+    "Native hidden clears action/tasks; restore waits fresh; blur and document.hidden alone do not suppress visible pet",
+    "Settings/theme navigation unmounts player; toggle saves via existing flow; reduced motion overrides enabled choice",
+    "Lunch/off-work/rest day/privacy blocked; theme/mode switch cancels old frame; tail unavailable in mini",
+    "Actual blue half/full special images protected; collection node feedback interrupts; matching ordinary collection art allowed",
+    "Mibao ordinary collection pose permitted; animation frames/deadlines cause zero config writes",
+    "Saved false survives fresh mount; failed optional frames keep static pose without infinite retry"
+  ],
+  "passed": true
+}

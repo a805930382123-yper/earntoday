@@ -1,0 +1,96 @@
+npm notice run earn-today@0.3.1 test
+npm notice run node src/salary/calc.test.ts && node src/collection/progress.test.ts && node src/autonomous/scheduler.test.ts && node tools/prepare-release.test.mjs
+▶ parseMinutes
+  ✔ 解析标准 HH:MM (0.8631ms)
+  ✔ 拒绝非法格式 (0.2346ms)
+✔ parseMinutes (2.2512ms)
+▶ 工资基础计算
+  ✔ 日薪与每日工时 (0.2287ms)
+  ✔ 时薪 (0.1564ms)
+✔ 工资基础计算 (0.5805ms)
+▶ 工作状态判断
+  ✔ 按时间段判断 (2.4505ms)
+  ✔ 周末判断 (0.1662ms)
+✔ 工作状态判断 (2.8466ms)
+▶ 自定义工作日
+  ✔ 七天所有非空组合都以本地星期优先判断，工资分母始终为22 (20.0317ms)
+  ✔ 仅周日上班和全周上班正常累计，午休暂停、下班封顶 (0.4131ms)
+  ✔ 增加或移除当天后从实际时间重新计算，不从零累计 (0.695ms)
+  ✔ 午夜、唤醒大幅时间跳变按新本地日期判断 (0.5415ms)
+  ✔ 使用本地 getDay 而非 UTC 星期 (0.1945ms)
+  ✔ 老用户和损坏星期字段读取回退，空集合保存严格拒绝 (0.9461ms)
+✔ 自定义工作日 (23.2277ms)
+▶ 今日已赚金额
+  ✔ 上班前为 0 (0.1799ms)
+  ✔ 10:00 已赚约一时薪 (0.1118ms)
+  ✔ 12:00 已赚 3 小时 (0.2535ms)
+  ✔ 午休期间金额暂停 (0.1165ms)
+  ✔ 13:30 已赚 3.5 小时 (0.0848ms)
+  ✔ 18:00 后固定为日薪 (0.0961ms)
+  ✔ 周末不累计 (0.0864ms)
+  ✔ 每秒平滑增长（不依赖增量累加） (0.0865ms)
+✔ 今日已赚金额 (1.2966ms)
+▶ 进度与倒计时
+  ✔ 进度范围与封顶 (0.1797ms)
+  ✔ 距离下班 (0.1283ms)
+  ✔ 时长格式化 (0.1117ms)
+✔ 进度与倒计时 (0.5777ms)
+▶ 设置校验
+  ✔ 默认设置合法 (0.1426ms)
+  ✔ 月薪非法 (0.0937ms)
+  ✔ 工作天数非法 (0.1209ms)
+  ✔ 时间交叉与午休越界 (0.0977ms)
+  ✔ 午休被限制在上下班之间，保证每日工时大于 0 (0.0835ms)
+✔ 设置校验 (0.6993ms)
+▶ 午休边界与恢复
+  ✔ 11:59:59 状态、有效工时、收入及进度一致 (0.2707ms)
+  ✔ 12:0:0 状态、有效工时、收入及进度一致 (0.1755ms)
+  ✔ 12:30:0 状态、有效工时、收入及进度一致 (0.0967ms)
+  ✔ 12:59:59 状态、有效工时、收入及进度一致 (0.0722ms)
+  ✔ 13:0:0 状态、有效工时、收入及进度一致 (0.0819ms)
+  ✔ 13:0:1 状态、有效工时、收入及进度一致 (0.6609ms)
+  ✔ 午休冷启动不依赖历史计时，午休不补算收入 (0.1634ms)
+  ✔ 修改午休时段立即按新设置计算 (0.1274ms)
+  ✔ 秒与毫秒连续计入有效工时 (0.408ms)
+✔ 午休边界与恢复 (2.3527ms)
+ℹ tests 37
+ℹ suites 8
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 45.8777
+✔ ten equal effective-work stages, lunch holds, rest/before stay empty, after full (3.6992ms)
+✔ deposit only once for a normal single boundary; no historical replay (0.2737ms)
+✔ theme copy maps every stage and work state to full/mini variants without salary vocabulary (0.525ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11.8961
+✔ one waiting task; independent slow deadline survives salary renders and repeated blinks (2.4509ms)
+✔ upper frequency bounds, eligibility restart, no idle polling and no catch-up after sleep (0.3475ms)
+✔ simultaneous deadlines do not queue, and elapsed deadlines during playback are discarded (0.2447ms)
+✔ approved static/half/closed/half/static timings and token-safe cancellation (1.3851ms)
+✔ suspended playback ends at current static state without running overdue frames (0.2271ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 12.4532
+✔ release gate accepts signed installer and rejects tampering, wrong key, wrong version and forged notes (17.9587ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 25.2658

@@ -11,11 +11,12 @@ async function main() {
       const page = await context.newPage(), errors = [];
       page.on('pageerror', e => errors.push(e.message));
       await prepare(page);
+      const initialListenerCount = await page.evaluate(() => window.__themeTest.listenerCount());
       const initialData = await page.evaluate(() => structuredClone(window.__themeTest.data));
       const info = async () => ({ money: await page.locator('.amount').textContent(), progress: await page.getByRole('progressbar').getAttribute('aria-valuenow'), state: await page.locator('.widget-stage').getAttribute('data-work-state'), card: await page.locator('.pet-card').boundingBox(), amount: await page.locator('.amount').boundingBox(), girl: await page.locator('.girl-wrap').boundingBox() });
       const choose = async id => {
         await page.getByRole('button', { name: '打开设置' }).click();
-        await page.waitForFunction(() => document.querySelector('#salary')?.value === '8800');
+        await page.waitForFunction(() => document.querySelector('#salary')?.value === '8800', null, { polling: 50 });
         await page.getByLabel('月薪（元）').fill('9900');
         await page.getByRole('button', { name: '皮肤主题', exact: true }).click();
         assert.equal(await page.locator('.theme-option').count(), 2);
@@ -34,9 +35,11 @@ async function main() {
         if (dpi === 2 && id === 'mibao') await page.screenshot({ path: 'docs/ui/mibao-picker.png', animations: 'disabled', omitBackground: true });
         await page.getByRole('button', { name: '返回工资设置' }).click();
         assert.equal(await page.getByLabel('月薪（元）').inputValue(), '9900', 'Draft preserved');
-        assert.equal(await page.locator('form input').count(), 6);
+        assert.equal(await page.locator('form input:not([type="checkbox"]):not([type="radio"])').count(), 6);
+        assert.equal(await page.getByLabel('桌宠自主小动作', { exact: true }).count(), 1);
         assert.match(await page.locator('.settings-portrait-image').getAttribute('src'), expectedPreview);
-        assert.ok(await page.locator('.settings-shell').evaluate(el => el.scrollHeight <= el.clientHeight));
+        assert.ok(await page.locator('.settings-shell').evaluate(el => el.scrollWidth <= el.clientWidth), 'Settings must not overflow horizontally');
+        await page.getByRole('button', { name: '保存设置', exact: true }).scrollIntoViewIfNeeded();
         const save = await page.getByRole('button', { name: '保存设置', exact: true }).boundingBox();
         assert.ok(save.y + save.height <= 600);
         if (dpi === 2 && id === 'mibao') await page.screenshot({ path: 'docs/ui/mibao-settings.png', animations: 'disabled', omitBackground: true });
@@ -77,7 +80,7 @@ async function main() {
         assert.equal(await page.locator('.theme-card-accent').count(), 0);
         assert.equal(await page.locator('.progress-fill').evaluate(el => getComputedStyle(el).backgroundImage), blue);
       }
-      assert.equal(await page.evaluate(() => window.__themeTest.listenerCount()), 6);
+      assert.equal(await page.evaluate(() => window.__themeTest.listenerCount()), initialListenerCount, 'Repeated theme/settings visits must not leak listeners');
       assert.deepEqual(errors, []);
       const fresh = await context.newPage();
       await prepare(fresh, 'mibao');

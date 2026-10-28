@@ -26,15 +26,20 @@ fn publish(app: &AppHandle, visible: bool) -> Result<Snapshot, String> {
 
 #[tauri::command]
 pub fn get_main_visibility(app: AppHandle) -> Result<Snapshot, String> {
-    // Show/hide publish only after the OS call succeeds. Reading the snapshot
-    // avoids an old is_visible response overwriting a newer transition.
-    Ok(*app.state::<VisibilityState>().0.lock().map_err(|e| e.to_string())?)
+    refresh(&app)
+}
+
+// Query on initialization and native size/minimize transitions only, never on
+// focus loss and never from a polling loop. Hidden/minimized is not unfocused.
+pub fn refresh(app: &AppHandle) -> Result<Snapshot, String> {
+    let win = app.get_webview_window("main").ok_or("主窗口不可用")?;
+    publish(app, win.is_visible().map_err(|e| e.to_string())? && !win.is_minimized().map_err(|e| e.to_string())?)
 }
 
 pub fn show(app: &AppHandle) -> Result<(), String> {
     let win = app.get_webview_window("main").ok_or("主窗口不可用")?;
     win.show().map_err(|e| e.to_string())?;
-    publish(app, true)?;
+    refresh(app)?;
     win.set_focus().map_err(|e| e.to_string())
 }
 

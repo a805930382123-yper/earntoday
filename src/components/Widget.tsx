@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
+import { interruptAutonomous } from "../autonomous/useAutonomousMotion";
 import { useVisibleClock, useWindowVisibility } from "../display/VisibilityProvider";
 import { invoke } from "../tauri";
 import { listen } from "@tauri-apps/api/event";
@@ -116,6 +117,7 @@ export function Widget() {
   const now = useVisibleClock();
   const { visible, generation } = useWindowVisibility();
   const [celebrate, setCelebrate] = useState(false);
+  const [petBusy, setPetBusy] = useState(false);
 
   const loadSettings = useCallback(async () => {
     try {
@@ -174,21 +176,29 @@ export function Widget() {
       console.error("保存位置失败", e);
     }
   }, []);
+  const handleWindowDrag = (event: MouseEvent) => {
+    if (event.button !== 0) return;
+    event.stopPropagation(); interruptAutonomous(); setPetBusy(true);
+    // Same native move loop as the existing character gesture; now its whole
+    // lifetime also blocks the lowest-priority autonomous animation.
+    void getCurrentWebviewWindow().startDragging().then(handleDragEnd).catch(console.error).finally(() => setPetBusy(false));
+  };
+  const autonomousBlocked = petBusy || !!deposit.pulse || activeCelebration;
 
   if (!ready) return <div className="display-loading card" role="status"><span>••••••</span><p>{error ? "显示设置读取失败，内容暂不显示。" : "正在读取显示设置…"}</p>{error && <button type="button" className="display-retry" onClick={reload}>重新读取</button>}<button type="button" className="display-retry" onClick={() => invoke("open_settings").catch(console.error)}>打开设置</button></div>;
-  if (windowMode === "mini") return <MiniWidget state={state} mood={MOOD[state]} moneyText={moneyText} status={theme.stateLabels?.[state] ?? STATUS_TEXT[state]} onDragEnd={handleDragEnd} interaction={interaction} stage={stage} deposit={deposit} />;
+  if (windowMode === "mini") return <MiniWidget state={state} mood={MOOD[state]} moneyText={moneyText} status={theme.stateLabels?.[state] ?? STATUS_TEXT[state]} onDragEnd={handleDragEnd} onWindowDrag={handleWindowDrag} onActivityChange={setPetBusy} autonomousBlocked={autonomousBlocked} interaction={interaction} stage={stage} deposit={deposit} />;
 
   return (
-    <div className={`widget-stage state-${state}${hidden ? " privacy-hidden" : ""}${collection ? " collection-mode" : ""}`} data-work-state={state} data-window-mode="full" onContextMenu={(e) => e.preventDefault()}>
+    <div className={`widget-stage state-${state}${hidden ? " privacy-hidden" : ""}${collection ? " collection-mode" : ""}`} data-work-state={state} data-window-mode="full" onContextMenu={(e) => e.preventDefault()} onPointerDownCapture={interruptAutonomous} onKeyDownCapture={interruptAutonomous}>
       {/* 全窗口拖动层（按钮在其上方，互不干扰） */}
-      <div className="drag-overlay" data-tauri-drag-region onMouseUp={handleDragEnd} />
+      <div className="drag-overlay" onMouseDown={handleWindowDrag} />
 
       {/* 接触阴影：双手和衣袖压在卡片上 */}
       <div className="girl-contact-shadow" />
 
       {/* Q 版蓝发女孩：趴在卡片上沿 */}
       <div className="girl-wrap">
-        <InteractivePet mood={MOOD[state]} interaction={interaction} onDragEnd={handleDragEnd} stage={stage} />
+        <InteractivePet mood={MOOD[state]} interaction={interaction} onDragEnd={handleDragEnd} stage={stage} autonomousBlocked={autonomousBlocked} onActivityChange={setPetBusy} />
       </div>
       <PetBubble interaction={interaction} />
 
@@ -196,7 +206,7 @@ export function Widget() {
       <div className="card pet-card">
         <DisplayControls />
         {theme.decorations.cardAccent && <img className="theme-card-accent" src={theme.decorations.cardAccent} alt="" aria-hidden="true" draggable={false} />}
-        <div className="card-drag-overlay" data-tauri-drag-region onMouseUp={handleDragEnd} />
+        <div className="card-drag-overlay" onMouseDown={handleWindowDrag} />
         <div className="card-actions">
           <button
             type="button"

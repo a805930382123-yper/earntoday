@@ -231,6 +231,8 @@ mod tests {
         fs::write(&path, &raw).unwrap();
         let mut data = config::parse_data(&raw);
         assert!(data.shortcut_enabled);
+        assert!(data.autonomous_motion_enabled);
+        data.autonomous_motion_enabled = false;
         data.shortcut_enabled = false;
         data.position.as_mut().unwrap().y = 90.;
         persist_at(&path, &data).unwrap();
@@ -241,6 +243,8 @@ mod tests {
         assert_eq!(saved["settings"]["futureArray"], serde_json::json!([]));
         assert_eq!(saved["futureFlag"], false);
         assert_eq!(saved["shortcutEnabled"], false);
+        assert_eq!(saved["autonomousMotionEnabled"], false);
+        assert!(!config::parse_data(&fs::read_to_string(&path).unwrap()).autonomous_motion_enabled);
         assert_eq!(saved["position"]["x"], 0.);
         assert_eq!(saved["windowMode"], "mini");
         checkpoint_at(&path).unwrap();

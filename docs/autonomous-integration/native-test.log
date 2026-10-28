@@ -1,0 +1,9 @@
+PASS native: Native minimize and restore events synchronize visibility; initialization queries real state; production has no debug API
+Measured: enabled=true shown=true
+Measured: enabled=false shown=true
+Measured: enabled=true shown=false
+Measured: enabled=false shown=false
+PASS native: Same-process enabled/disabled × shown/hidden resource observations captured (5-second windows, warm caches)
+Waiting for an actual 45-second native autonomous action…
+PASS native: Real native ear action after random wait, correct static return; hiding writes no config; restoring does not catch up
+PASS native: Disabled preference survives real process restart; salary, weekdays, theme, mode and future fields preserved

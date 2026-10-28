@@ -9,6 +9,7 @@ async function prepare(page, themeId = null, display = {}) {
   await page.addInitScript(({ initialTheme, display }) => {
     const callbacks = new Map(), listeners = new Map(); let id = 0;
     const data = { settings: { monthlySalary: 8800, workdaysPerMonth: 22, workStart: '09:00', workEnd: '18:00', lunchStart: '12:00', lunchEnd: '13:00' }, position: { x: 100, y: 200 }, selectedThemeId: initialTheme, windowMode: display.windowMode || 'full', privacyMode: display.privacyMode || 'visible', displayMode: display.displayMode || 'amount', configError: display.configError };
+    if (display.autonomousMotionEnabled !== undefined) data.autonomousMotionEnabled = display.autonomousMotionEnabled;
     const emit = (event, payload = null) => { for (const listener of listeners.values()) if (listener.event === event) callbacks.get(listener.handler)?.({ event, id: listener.id, payload }); };
     let visibility = { visible: true, revision: 0 }, settingsOpen = false;
     let shortcut = { enabled: true, registered: true, error: null };
@@ -50,17 +51,21 @@ async function prepare(page, themeId = null, display = {}) {
           if (window.__themeTest.failSave) throw new Error('模拟磁盘写入失败');
           data.selectedThemeId = args.selectedThemeId; emit('theme-updated', data.selectedThemeId); return;
         }
-        if (cmd === 'save_settings') { if (window.__themeTest.failSave) throw new Error('模拟磁盘写入失败'); settingsOpen = false; data.settings = { ...args.settings }; if(args.displayMode) data.displayMode = args.displayMode; data.configError = null; emit('display-updated', preferences()); await resizeMain(); emit('settings-updated'); return; }
+        if (cmd === 'save_settings') { if (window.__themeTest.failSave) throw new Error('模拟磁盘写入失败'); settingsOpen = false; data.settings = { ...args.settings }; if(args.displayMode) data.displayMode = args.displayMode; if (args.autonomousMotionEnabled !== undefined) data.autonomousMotionEnabled = args.autonomousMotionEnabled; data.configError = null; emit('display-updated', preferences()); await resizeMain(); emit('settings-updated'); return; }
         throw new Error(`Unexpected command ${cmd}`);
       },
     };
   }, { initialTheme: themeId, display });
-  await page.clock.install({ time: new Date('2026-10-13T10:00:00+08:00') });
-  await page.clock.pauseAt(new Date('2026-10-13T10:00:00+08:00'));
+  const initialTime = new Date(display.now || '2026-10-13T10:00:00+08:00');
+  await page.clock.install({ time: initialTime });
+  // Freeze before navigation; do not race real milliseconds between install
+  // and pauseAt. Reset Date to the requested fixture after pausing.
+  await page.clock.pauseAt(new Date(initialTime.getTime() + 60000));
+  await page.clock.setSystemTime(initialTime);
   await page.goto('http://127.0.0.1:5178');
   if (display.holdReads || display.configError) return;
   await page.waitForSelector('.state-working');
-  await page.waitForFunction(() => [...document.images].every(image => image.complete && image.naturalWidth > 0));
+  await page.waitForFunction(() => [...document.images].every(image => image.complete && image.naturalWidth > 0), null, { polling: 50 });
 }
 
 async function main() {
@@ -70,6 +75,7 @@ async function main() {
     const page = await context.newPage(); const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     await prepare(page);
+    const initialListenerCount = await page.evaluate(() => window.__themeTest.listenerCount());
     const theme = async () => page.locator('.theme-root').getAttribute('data-theme-id');
     const data = async () => page.evaluate(() => JSON.parse(JSON.stringify(window.__themeTest.data)));
     const snapshot = async () => ({ state: await page.locator('.widget-stage').getAttribute('data-work-state'), money: await page.locator('.amount').textContent(), progress: await page.getByRole('progressbar').getAttribute('aria-valuenow'), card: await page.locator('.pet-card').boundingBox(), girl: await page.locator('.girl-wrap').boundingBox(), amount: await page.locator('.amount').boundingBox() });
@@ -132,7 +138,7 @@ async function main() {
     await page.waitForSelector('.widget-stage');
     assert.equal((await data()).selectedThemeId, 'blue-whale-girl');
     assert.equal((await data()).settings.monthlySalary, 9900);
-    assert.equal(await page.evaluate(() => window.__themeTest.listenerCount()), 6);
+    assert.equal(await page.evaluate(() => window.__themeTest.listenerCount()), initialListenerCount, 'Settings round trips must not leak listeners');
     assert.deepEqual(errors, []);
 
     // Each fresh page is a fresh resource cache, enabling actual load failures.

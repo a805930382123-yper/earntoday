@@ -78,6 +78,8 @@ pub struct AppData {
     pub full_position_scale: Option<f64>,
     #[serde(default = "default_shortcut_enabled")]
     pub shortcut_enabled: bool,
+    #[serde(default = "default_autonomous_motion_enabled")]
+    pub autonomous_motion_enabled: bool,
     // Report failures to the UI; this transient diagnostic is never persisted.
     #[serde(default, skip_deserializing, skip_serializing_if = "Option::is_none")]
     pub config_error: Option<String>,
@@ -86,6 +88,7 @@ pub struct AppData {
 }
 
 fn default_shortcut_enabled() -> bool { true }
+fn default_autonomous_motion_enabled() -> bool { true }
 
 impl Default for AppData {
     fn default() -> Self {
@@ -93,7 +96,7 @@ impl Default for AppData {
             settings: None, position: None, selected_theme_id: None,
             window_mode: WindowMode::Full, privacy_mode: PrivacyMode::Visible,
             display_mode: DisplayMode::Amount, full_position: None,
-            position_scale: None, full_position_scale: None, shortcut_enabled: true,
+            position_scale: None, full_position_scale: None, shortcut_enabled: true, autonomous_motion_enabled: true,
             config_error: None, extra: BTreeMap::new(),
         }
     }

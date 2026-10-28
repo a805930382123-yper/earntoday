@@ -1,0 +1,86 @@
+npm notice run earn-today@0.3.1 build:exe
+npm notice run powershell -NoProfile -ExecutionPolicy Bypass -File tools/build-launcher.ps1
+npm notice run earn-today@0.3.1 tauri
+npm notice run tauri build --no-bundle
+        Info Looking up installed tauri packages to check mismatched versions...
+     Running beforeBuildCommand `npm run build`
+npm notice run earn-today@0.3.1 build
+npm notice run tsc && vite build
+vite v5.4.21 building for production...
+transforming...
+✓ 137 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                          0.47 kB │ gzip:  0.34 kB
+dist/assets/32x32-Z45ZjYOm.png                           0.72 kB
+dist/assets/star-DswNcPjh.webp                           6.40 kB
+dist/assets/star-b3GZRF4U.webp                           9.22 kB
+dist/assets/paw-4SPcgYP5.webp                            9.34 kB
+dist/assets/chibi-girl-hands-JwYskZ4O.png               34.76 kB
+dist/assets/dried-fish-KadRUEYt.webp                    40.91 kB
+dist/assets/chibi-girl-left-CYocoKe-.png                47.88 kB
+dist/assets/chibi-girl-right-DqFk9NfJ.png               49.71 kB
+dist/assets/whale-DL-Oc39N.webp                         72.82 kB
+dist/assets/rice-fill-C27qZHwa.webp                     77.59 kB
+dist/assets/rice-spoon-BRMBb25P.webp                    78.50 kB
+dist/assets/stage-0-Bv-oziac.webp                      105.61 kB
+dist/assets/stage-1-Dapdrgji.webp                      108.53 kB
+dist/assets/stage-2-HP51CocA.webp                      109.32 kB
+dist/assets/stage-3-De_h-gMb.webp                      111.44 kB
+dist/assets/stage-4-CTsfh0rG.webp                      112.47 kB
+dist/assets/stage-5-LDS0bhAz.webp                      114.12 kB
+dist/assets/stage-6-3F-sG5_s.webp                      118.22 kB
+dist/assets/stage-7-D6uZynw0.webp                      119.46 kB
+dist/assets/stage-8-BVGlNS0M.webp                      123.28 kB
+dist/assets/stage-9-C63q4NSI.webp                      127.48 kB
+dist/assets/stage-10-BxAshAQb.webp                     132.92 kB
+dist/assets/stage-0-Ds1WqjBa.webp                      168.36 kB
+dist/assets/stage-1-D5pC2OmQ.webp                      179.35 kB
+dist/assets/stage-2-iW9EifsY.webp                      190.24 kB
+dist/assets/stage-3-nHydxi1H.webp                      202.45 kB
+dist/assets/stage-4-CQenOfa9.webp                      213.10 kB
+dist/assets/stage-5-CsIuKz28.webp                      220.22 kB
+dist/assets/stage-6-RGqoIVLP.webp                      220.85 kB
+dist/assets/stage-7-CFQmxGGL.webp                      232.03 kB
+dist/assets/stage-8-BSf_x8et.webp                      247.22 kB
+dist/assets/stage-9-ONqcKfMt.webp                      258.21 kB
+dist/assets/stage-10-DXnYPq81.webp                     268.88 kB
+dist/assets/character-half-C5_Yf3Jx.webp               528.32 kB
+dist/assets/character-full-ZDuoby5V.webp               554.08 kB
+dist/assets/blue-blink-closed-5gntODct.png             670.60 kB
+dist/assets/blue-blink-half-UwTkcgLt.png               673.03 kB
+dist/assets/blue-yawn-yawn-D2fLa_Ww.png                674.79 kB
+dist/assets/blue-yawn-transition-60hDAVvK.png          674.90 kB
+dist/assets/chibi-girl-top-Bi3Ie-0N.png                941.62 kB
+dist/assets/bluewhale_lunch_react-CIypbOR6.png       1,079.96 kB
+dist/assets/bluewhale_finished_react-DRlKbvAq.png    1,318.33 kB
+dist/assets/chibi-girl-working-private-DDXoXwFP.png  1,383.29 kB
+dist/assets/bluewhale_working_react-DddQZnpI.png     1,418.54 kB
+dist/assets/chibi-girl-sleeping-e0X2Flr5.png         1,445.42 kB
+dist/assets/mibao_lunch_react-pWZR_OLm.png           1,451.46 kB
+dist/assets/chibi-girl-calculator-DTucfF1J.png       1,502.33 kB
+dist/assets/chibi-girl-after-work-ChU9qxZV.png       1,547.43 kB
+dist/assets/mibao_working_react-DNKiAVVc.png         1,736.40 kB
+dist/assets/mibao-ear-ease-DHis4-BY.png              1,884.47 kB
+dist/assets/mibao-ear-near-DrDVsqRC.png              1,887.30 kB
+dist/assets/mibao-tail-right-DtEPW1yL.png            1,889.36 kB
+dist/assets/mibao-tail-left-D_VkQeNi.png             1,890.05 kB
+dist/assets/mibao-ear-tilt-BHQ3SZNz.png              1,890.64 kB
+dist/assets/working-private-AU-2EuM0.png             1,911.03 kB
+dist/assets/mibao_finished_react-prone-D6VXiOlF.png  2,005.75 kB
+dist/assets/working-BehkXqML.png                     2,014.56 kB
+dist/assets/finished-BepBsJHy.png                    2,014.99 kB
+dist/assets/settings-CLWDeIvL.png                    2,112.31 kB
+dist/assets/lunch-DCf_I88x.png                       2,125.29 kB
+dist/assets/index--5BBxXdn.css                          39.77 kB │ gzip:  8.77 kB
+dist/assets/index-CppaDnzh.js                          229.51 kB │ gzip: 72.80 kB
+✓ built in 2.31s
+   Compiling earn-today v0.3.1 (D:\LJW\plugins\earn money\src-tauri)
+    Finished `release` profile [optimized] target(s) in 10m 31s
+       Built application at: D:\LJW\plugins\earn money\src-tauri\target\release\earn-today.exe
+Created: D:\LJW\plugins\earn money\EarnToday.exe
+npm notice
+npm notice New patch version of npm available! 12.2.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice

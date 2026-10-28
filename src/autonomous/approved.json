@@ -1,0 +1,86 @@
+{
+  "leadMs": 360,
+  "tailMs": 360,
+  "actions": {
+    "blue-blink": {
+      "base": "blue",
+      "sequence": [
+        "static",
+        "half",
+        "closed",
+        "half",
+        "static"
+      ],
+      "timing": [
+        200,
+        300,
+        200
+      ],
+      "size": [
+        1235,
+        561
+      ]
+    },
+    "blue-yawn": {
+      "base": "blue",
+      "sequence": [
+        "static",
+        "transition",
+        "yawn",
+        "transition",
+        "static"
+      ],
+      "timing": [
+        250,
+        460,
+        280
+      ],
+      "size": [
+        1235,
+        561
+      ]
+    },
+    "mibao-ear": {
+      "base": "mibao",
+      "sequence": [
+        "static",
+        "ease",
+        "near",
+        "tilt",
+        "near",
+        "ease",
+        "static"
+      ],
+      "timing": [
+        90,
+        110,
+        150,
+        120,
+        130
+      ],
+      "size": [
+        1859,
+        846
+      ]
+    },
+    "mibao-tail": {
+      "base": "mibao",
+      "sequence": [
+        "static",
+        "right",
+        "static",
+        "left",
+        "static"
+      ],
+      "timing": [
+        240,
+        200,
+        240
+      ],
+      "size": [
+        1859,
+        846
+      ]
+    }
+  }
+}

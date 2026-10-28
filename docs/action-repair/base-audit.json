@@ -1,0 +1,429 @@
+{
+  "scope": "ordinary working pose, amount display, visible privacy; no business hooks mounted",
+  "references": [
+    "src/themes/catalog.ts -> DEFAULT_THEME.characters.working",
+    "src/themes/mibao.ts -> MIBAO_THEME.characters.working",
+    "src/components/ChibiGirl.tsx -> theme.characters.working",
+    "src/components/Widget.tsx -> .girl-wrap -> width 361",
+    "src/components/MiniWidget.tsx -> theme.mini -> .mini-pet-clip"
+  ],
+  "samples": [
+    {
+      "id": "blue-blink-full",
+      "source": "src/assets/chibi-girl-top.png",
+      "sha256": "2b4a815d0c6aa748a5a5d87d94cb0938a1297087ac0d4023d8e8398c9ac558a3",
+      "nativeSize": [
+        1235,
+        561
+      ],
+      "viewport": [
+        260,
+        276
+      ],
+      "characterBox": {
+        "left": 39.75,
+        "top": 30,
+        "width": 180.5,
+        "height": 81.99230769230769
+      },
+      "objectFit": "contain",
+      "objectPosition": "center bottom",
+      "imageRect": [
+        39.75,
+        30.0,
+        180.5,
+        81.99230769230769
+      ],
+      "cssZoom": 0.5,
+      "cssCharacterWidth": 361,
+      "themeOffsets": {
+        "left": "50% + translateX(-50%)",
+        "top": 60
+      },
+      "clip": null,
+      "mask": "linear-gradient(180deg,#000 88%,transparent 100%)",
+      "contactAnnotationsNative": [
+        [
+          619,
+          550
+        ],
+        [
+          755,
+          553
+        ]
+      ],
+      "contactAnnotationsViewport": [
+        [
+          130.2192,
+          110.3846
+        ],
+        [
+          150.0962,
+          110.8231
+        ]
+      ],
+      "cardTop": 97,
+      "contactType": "manual center of lowest visible hand/paw edge; exact pixels guarded independently"
+    },
+    {
+      "id": "blue-blink-mini",
+      "source": "src/assets/chibi-girl-top.png",
+      "sha256": "2b4a815d0c6aa748a5a5d87d94cb0938a1297087ac0d4023d8e8398c9ac558a3",
+      "nativeSize": [
+        1235,
+        561
+      ],
+      "viewport": [
+        260,
+        108
+      ],
+      "characterBox": {
+        "left": -54,
+        "top": 9,
+        "width": 200,
+        "height": 90.8502024291498
+      },
+      "objectFit": "contain",
+      "objectPosition": "center bottom",
+      "imageRect": [
+        -54.0,
+        9.0,
+        200.0,
+        90.8502024291498
+      ],
+      "cssZoom": 1,
+      "cssCharacterWidth": 200,
+      "themeOffsets": {
+        "left": -59,
+        "top": 9
+      },
+      "clip": {
+        "left": 5,
+        "top": 0,
+        "width": 110,
+        "height": 104,
+        "borderRadius": 17
+      },
+      "mask": "none",
+      "contactAnnotationsNative": [
+        [
+          619,
+          550
+        ],
+        [
+          755,
+          553
+        ]
+      ],
+      "contactAnnotationsViewport": [
+        [
+          46.2429,
+          98.0688
+        ],
+        [
+          68.2672,
+          98.5547
+        ]
+      ],
+      "cardTop": 8,
+      "contactType": "manual center of lowest visible hand/paw edge; exact pixels guarded independently"
+    },
+    {
+      "id": "blue-yawn-full",
+      "source": "src/assets/chibi-girl-top.png",
+      "sha256": "2b4a815d0c6aa748a5a5d87d94cb0938a1297087ac0d4023d8e8398c9ac558a3",
+      "nativeSize": [
+        1235,
+        561
+      ],
+      "viewport": [
+        260,
+        276
+      ],
+      "characterBox": {
+        "left": 39.75,
+        "top": 30,
+        "width": 180.5,
+        "height": 81.99230769230769
+      },
+      "objectFit": "contain",
+      "objectPosition": "center bottom",
+      "imageRect": [
+        39.75,
+        30.0,
+        180.5,
+        81.99230769230769
+      ],
+      "cssZoom": 0.5,
+      "cssCharacterWidth": 361,
+      "themeOffsets": {
+        "left": "50% + translateX(-50%)",
+        "top": 60
+      },
+      "clip": null,
+      "mask": "linear-gradient(180deg,#000 88%,transparent 100%)",
+      "contactAnnotationsNative": [
+        [
+          619,
+          550
+        ],
+        [
+          755,
+          553
+        ]
+      ],
+      "contactAnnotationsViewport": [
+        [
+          130.2192,
+          110.3846
+        ],
+        [
+          150.0962,
+          110.8231
+        ]
+      ],
+      "cardTop": 97,
+      "contactType": "manual center of lowest visible hand/paw edge; exact pixels guarded independently"
+    },
+    {
+      "id": "blue-yawn-mini",
+      "source": "src/assets/chibi-girl-top.png",
+      "sha256": "2b4a815d0c6aa748a5a5d87d94cb0938a1297087ac0d4023d8e8398c9ac558a3",
+      "nativeSize": [
+        1235,
+        561
+      ],
+      "viewport": [
+        260,
+        108
+      ],
+      "characterBox": {
+        "left": -54,
+        "top": 9,
+        "width": 200,
+        "height": 90.8502024291498
+      },
+      "objectFit": "contain",
+      "objectPosition": "center bottom",
+      "imageRect": [
+        -54.0,
+        9.0,
+        200.0,
+        90.8502024291498
+      ],
+      "cssZoom": 1,
+      "cssCharacterWidth": 200,
+      "themeOffsets": {
+        "left": -59,
+        "top": 9
+      },
+      "clip": {
+        "left": 5,
+        "top": 0,
+        "width": 110,
+        "height": 104,
+        "borderRadius": 17
+      },
+      "mask": "none",
+      "contactAnnotationsNative": [
+        [
+          619,
+          550
+        ],
+        [
+          755,
+          553
+        ]
+      ],
+      "contactAnnotationsViewport": [
+        [
+          46.2429,
+          98.0688
+        ],
+        [
+          68.2672,
+          98.5547
+        ]
+      ],
+      "cardTop": 8,
+      "contactType": "manual center of lowest visible hand/paw edge; exact pixels guarded independently"
+    },
+    {
+      "id": "mibao-ear-full",
+      "source": "src/assets/mibao/working.png",
+      "sha256": "5c106ff631c6c6feacb9bd766110d3c0e2a689110ed79411d6e15a28ca5e9436",
+      "nativeSize": [
+        1859,
+        846
+      ],
+      "viewport": [
+        260,
+        276
+      ],
+      "characterBox": {
+        "left": 39.75,
+        "top": 30,
+        "width": 180.5,
+        "height": 81.99230769230769
+      },
+      "objectFit": "contain",
+      "objectPosition": "center bottom",
+      "imageRect": [
+        39.915070921985816,
+        30.0,
+        180.16985815602837,
+        81.99230769230769
+      ],
+      "cssZoom": 0.5,
+      "cssCharacterWidth": 361,
+      "themeOffsets": {
+        "left": "50% + translateX(-50%)",
+        "top": 60
+      },
+      "clip": null,
+      "mask": "none",
+      "contactAnnotationsNative": [
+        [
+          561,
+          810
+        ],
+        [
+          1096,
+          705
+        ]
+      ],
+      "contactAnnotationsViewport": [
+        [
+          94.2859,
+          108.5033
+        ],
+        [
+          146.1368,
+          98.3269
+        ]
+      ],
+      "cardTop": 97,
+      "contactType": "manual center of lowest visible hand/paw edge; exact pixels guarded independently"
+    },
+    {
+      "id": "mibao-ear-mini",
+      "source": "src/assets/mibao/working.png",
+      "sha256": "5c106ff631c6c6feacb9bd766110d3c0e2a689110ed79411d6e15a28ca5e9436",
+      "nativeSize": [
+        1859,
+        846
+      ],
+      "viewport": [
+        260,
+        108
+      ],
+      "characterBox": {
+        "left": -15,
+        "top": 9,
+        "width": 200,
+        "height": 90.8502024291498
+      },
+      "objectFit": "contain",
+      "objectPosition": "center bottom",
+      "imageRect": [
+        -14.817095931317667,
+        9.0,
+        199.63419186263533,
+        90.8502024291498
+      ],
+      "cssZoom": 1,
+      "cssCharacterWidth": 200,
+      "themeOffsets": {
+        "left": -20,
+        "top": 9
+      },
+      "clip": {
+        "left": 5,
+        "top": 0,
+        "width": 110,
+        "height": 104,
+        "borderRadius": 17
+      },
+      "mask": "none",
+      "contactAnnotationsNative": [
+        [
+          561,
+          810
+        ],
+        [
+          1096,
+          705
+        ]
+      ],
+      "contactAnnotationsViewport": [
+        [
+          45.4275,
+          95.9842
+        ],
+        [
+          102.8801,
+          84.7085
+        ]
+      ],
+      "cardTop": 8,
+      "contactType": "manual center of lowest visible hand/paw edge; exact pixels guarded independently"
+    },
+    {
+      "id": "mibao-tail-full",
+      "source": "src/assets/mibao/working.png",
+      "sha256": "5c106ff631c6c6feacb9bd766110d3c0e2a689110ed79411d6e15a28ca5e9436",
+      "nativeSize": [
+        1859,
+        846
+      ],
+      "viewport": [
+        260,
+        276
+      ],
+      "characterBox": {
+        "left": 39.75,
+        "top": 30,
+        "width": 180.5,
+        "height": 81.99230769230769
+      },
+      "objectFit": "contain",
+      "objectPosition": "center bottom",
+      "imageRect": [
+        39.915070921985816,
+        30.0,
+        180.16985815602837,
+        81.99230769230769
+      ],
+      "cssZoom": 0.5,
+      "cssCharacterWidth": 361,
+      "themeOffsets": {
+        "left": "50% + translateX(-50%)",
+        "top": 60
+      },
+      "clip": null,
+      "mask": "none",
+      "contactAnnotationsNative": [
+        [
+          561,
+          810
+        ],
+        [
+          1096,
+          705
+        ]
+      ],
+      "contactAnnotationsViewport": [
+        [
+          94.2859,
+          108.5033
+        ],
+        [
+          146.1368,
+          98.3269
+        ]
+      ],
+      "cardTop": 97,
+      "contactType": "manual center of lowest visible hand/paw edge; exact pixels guarded independently"
+    }
+  ]
+}

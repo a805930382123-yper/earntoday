@@ -1,0 +1,27 @@
+   Compiling earn-today v0.3.1 (D:\LJW\plugins\earn money\src-tauri)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7m 48s
+     Running unittests src\lib.rs (target\debug\deps\earn_today_lib-486627edb216922b.exe)
+
+running 20 tests
+test config::theme_tests::legacy_weekdays_default_without_losing_other_settings ... ok
+test config::theme_tests::legacy_modes_default_to_full_visible ... ok
+test config::theme_tests::explicit_disabled_shortcut_is_not_treated_as_missing ... ok
+test config::theme_tests::corrupt_privacy_fails_closed_and_keeps_valid_salary ... ok
+test config::theme_tests::collection_roundtrips_independently_and_invalid_mode_fails_closed ... ok
+test config::theme_tests::malformed_theme_does_not_discard_salary ... ok
+test config::theme_tests::modes_roundtrip_without_losing_salary_theme_or_anchors ... ok
+test config::theme_tests::malformed_disk_weekdays_recover_only_this_field ... ok
+test config::theme_tests::old_configuration_keeps_salary_and_position ... ok
+test config::theme_tests::salary_theme_and_position_roundtrip_independently ... ok
+test config::theme_tests::theme_id_validation_is_bounded ... ok
+test config::theme_tests::save_weekdays_is_strict_and_roundtrips_independently ... ok
+test display_window::tests::clamp_uses_work_area_including_negative_monitor_origins ... ok
+test display_window::tests::mode_sizes_are_logical_and_distinct ... ok
+test shortcut::tests::press_release_and_repeat_only_toggle_once_per_press ... ok
+test config_storage::tests::failed_write_leaves_original_and_never_initializes_defaults ... ok
+test config_storage::tests::corruption_cannot_be_overwritten_even_after_caller_clears_error ... ok
+test config_storage::tests::first_run_theme_choice_can_be_saved_before_salary_but_not_restored_as_empty_settings ... ok
+test config_storage::tests::legacy_missing_fields_and_unknown_values_survive_atomic_save ... ok
+test config_storage::tests::restore_is_explicit_validated_and_preserves_corrupt_original ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.54s

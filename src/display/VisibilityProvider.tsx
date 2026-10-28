@@ -3,7 +3,7 @@ import { listen } from "@tauri-apps/api/event";
 import { invoke } from "../tauri";
 
 interface Snapshot { visible: boolean; revision: number }
-const Context = createContext({ visible: false, generation: "initial" });
+const Context = createContext({ visible: false, generation: "initial", nativeVisible: false, nativeGeneration: -1 });
 
 export function VisibilityProvider({ children }: { children: ReactNode }) {
   const [native, setNative] = useState<Snapshot>({ visible: false, revision: -1 });
@@ -44,7 +44,7 @@ export function VisibilityProvider({ children }: { children: ReactNode }) {
     document.documentElement.dataset.windowVisible = String(visible);
     return () => { delete document.documentElement.dataset.windowVisible; };
   }, [visible]);
-  return <Context.Provider value={{ visible, generation: `${native.revision}:${page.revision}` }}>{children}</Context.Provider>;
+  return <Context.Provider value={{ visible, generation: `${native.revision}:${page.revision}`, nativeVisible: native.visible, nativeGeneration: native.revision }}>{children}</Context.Provider>;
 }
 
 export function useWindowVisibility() { return useContext(Context); }

@@ -1,0 +1,157 @@
+{
+  "originalHashesUnchanged": true,
+  "states": [
+    {
+      "action": "blue-blink",
+      "state": "half",
+      "outsideAllowedPixels": 0,
+      "contactChangedPixels": 0,
+      "newInteriorAlphaHoles": 0,
+      "runtimeEqualsLossless": true
+    },
+    {
+      "action": "blue-blink",
+      "state": "closed",
+      "outsideAllowedPixels": 0,
+      "contactChangedPixels": 0,
+      "newInteriorAlphaHoles": 0,
+      "runtimeEqualsLossless": true
+    },
+    {
+      "action": "blue-yawn",
+      "state": "transition",
+      "outsideAllowedPixels": 0,
+      "contactChangedPixels": 0,
+      "newInteriorAlphaHoles": 0,
+      "runtimeEqualsLossless": true
+    },
+    {
+      "action": "blue-yawn",
+      "state": "yawn",
+      "outsideAllowedPixels": 0,
+      "contactChangedPixels": 0,
+      "newInteriorAlphaHoles": 0,
+      "runtimeEqualsLossless": true
+    },
+    {
+      "action": "mibao-ear",
+      "state": "ease",
+      "outsideAllowedPixels": 0,
+      "contactChangedPixels": 0,
+      "newInteriorAlphaHoles": 0,
+      "runtimeEqualsLossless": true
+    },
+    {
+      "action": "mibao-ear",
+      "state": "near",
+      "outsideAllowedPixels": 0,
+      "contactChangedPixels": 0,
+      "newInteriorAlphaHoles": 0,
+      "runtimeEqualsLossless": true
+    },
+    {
+      "action": "mibao-ear",
+      "state": "tilt",
+      "outsideAllowedPixels": 0,
+      "contactChangedPixels": 0,
+      "newInteriorAlphaHoles": 0,
+      "runtimeEqualsLossless": true
+    },
+    {
+      "action": "mibao-tail",
+      "state": "right",
+      "outsideAllowedPixels": 0,
+      "contactChangedPixels": 0,
+      "newInteriorAlphaHoles": 0,
+      "runtimeEqualsLossless": true
+    },
+    {
+      "action": "mibao-tail",
+      "state": "left",
+      "outsideAllowedPixels": 0,
+      "contactChangedPixels": 0,
+      "newInteriorAlphaHoles": 0,
+      "runtimeEqualsLossless": true
+    }
+  ],
+  "samples": [
+    {
+      "id": "blue-blink-full",
+      "visibleChangedBoundsCssPx": [
+        108.442,
+        77.5,
+        165.15,
+        101.762
+      ],
+      "motionAreaInsideExistingClip": true
+    },
+    {
+      "id": "blue-blink-mini",
+      "visibleChangedBoundsCssPx": [
+        22.113,
+        61.632,
+        84.947,
+        88.514
+      ],
+      "motionAreaInsideExistingClip": true
+    },
+    {
+      "id": "blue-yawn-full",
+      "visibleChangedBoundsCssPx": [
+        108.442,
+        77.5,
+        165.296,
+        102.638
+      ],
+      "motionAreaInsideExistingClip": true
+    },
+    {
+      "id": "blue-yawn-mini",
+      "visibleChangedBoundsCssPx": [
+        22.113,
+        61.632,
+        85.109,
+        89.486
+      ],
+      "motionAreaInsideExistingClip": true
+    },
+    {
+      "id": "mibao-ear-full",
+      "visibleChangedBoundsCssPx": [
+        69.669,
+        30.0,
+        140.031,
+        70.899
+      ],
+      "motionAreaInsideExistingClip": true
+    },
+    {
+      "id": "mibao-ear-mini",
+      "visibleChangedBoundsCssPx": [
+        18.151,
+        9.0,
+        96.115,
+        54.318
+      ],
+      "motionAreaInsideExistingClip": true
+    },
+    {
+      "id": "mibao-tail-full",
+      "visibleChangedBoundsCssPx": [
+        165.52,
+        35.815,
+        215.724,
+        61.498
+      ],
+      "motionAreaInsideExistingClip": true
+    }
+  ],
+  "blinkBluePixelProxy": {
+    "original": 8269,
+    "half": 3130,
+    "closed": 24,
+    "halfRatio": 0.3785,
+    "note": "fixed original iris bounds; supplements visual inspection, not a naturalness score"
+  },
+  "checks": "PASS: original hashes; 9 states exact outside masks; both ear roots move; eyes/hands/fish/paws/tail-root guards; lossless exports; contacts; no new internal alpha holes; 7 motion regions within existing clips; real half-close proxy."
+}

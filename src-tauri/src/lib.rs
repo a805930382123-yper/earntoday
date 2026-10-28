@@ -108,7 +108,7 @@ fn load_data(app: AppHandle) -> AppData {
 }
 
 #[tauri::command]
-fn save_settings(app: AppHandle, mut settings: SalarySettings, display_mode: Option<DisplayMode>) -> Result<(), String> {
+fn save_settings(app: AppHandle, mut settings: SalarySettings, display_mode: Option<DisplayMode>, autonomous_motion_enabled: Option<bool>) -> Result<(), String> {
     validate_settings(&settings)?;
     {
         let state = app.state::<AppState>();
@@ -121,6 +121,7 @@ fn save_settings(app: AppHandle, mut settings: SalarySettings, display_mode: Opt
         }
         updated.settings = Some(settings);
         if let Some(mode) = display_mode { updated.display_mode = mode; }
+        if let Some(enabled) = autonomous_motion_enabled { updated.autonomous_motion_enabled = enabled; }
         updated.config_error = None;
         persist(&updated)?;
         *data = updated;
@@ -325,6 +326,9 @@ pub fn run() {
             Ok(())
         })
         .on_window_event(|window, event| {
+            if matches!(event, WindowEvent::Resized(_)) {
+                if let Err(error) = visibility::refresh(window.app_handle()) { eprintln!("同步窗口可见性失败：{error}"); }
+            }
             if let WindowEvent::CloseRequested { api, .. } = event {
                 // 点关闭 = 隐藏窗口，程序驻留托盘，只有托盘菜单可真正退出
                 api.prevent_close();

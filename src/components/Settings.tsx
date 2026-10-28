@@ -7,6 +7,7 @@ import { UpdatePanel } from "../update/UpdateProvider";
 import { BackupPanel } from "../update/BackupPanel";
 import { ShortcutPanel } from "../display/ShortcutPanel";
 import { useDisplay, type DisplayMode } from "../display/DisplayProvider";
+import { useAutonomousPreferences } from "../autonomous/Preferences";
 import {
   DEFAULT_SETTINGS,
   dailySalary,
@@ -54,6 +55,8 @@ export function Settings() {
   const { theme, assetError, notice } = useTheme();
   const { displayMode: savedDisplayMode } = useDisplay();
   const [displayMode, setDisplayMode] = useState<DisplayMode>(savedDisplayMode);
+  const { reduced } = useAutonomousPreferences();
+  const [autonomousMotionEnabled, setAutonomousMotionEnabled] = useState(true);
   const [page, setPage] = useState<"salary" | "themes">("salary");
   const [form, setForm] = useState<FormState>(INITIAL);
   const [isFirstRun, setIsFirstRun] = useState(true);
@@ -63,10 +66,11 @@ export function Settings() {
   const [baseline, setBaseline] = useState("");
 
   useEffect(() => {
-    invoke<{ settings: SalarySettings | null; displayMode?: DisplayMode; configError?: string }>("load_data")
+    invoke<{ settings: SalarySettings | null; displayMode?: DisplayMode; autonomousMotionEnabled?: boolean; configError?: string }>("load_data")
       .then((data) => {
         if (data.configError) setLoadError(data.configError);
         setDisplayMode(data.displayMode === "collection" ? "collection" : "amount");
+        setAutonomousMotionEnabled(data.autonomousMotionEnabled !== false);
         if (data.settings) {
           const s = data.settings;
           const loadedForm: FormState = {
@@ -79,7 +83,7 @@ export function Settings() {
             lunchEnd: s.lunchEnd,
           };
           setForm(loadedForm);
-          setBaseline(JSON.stringify({ settings: toSettings(loadedForm), displayMode: data.displayMode === "collection" ? "collection" : "amount" }));
+          setBaseline(JSON.stringify({ settings: toSettings(loadedForm), displayMode: data.displayMode === "collection" ? "collection" : "amount", autonomousMotionEnabled: data.autonomousMotionEnabled !== false }));
           setIsFirstRun(false);
         }
       })
@@ -106,7 +110,7 @@ export function Settings() {
     setSubmitting(true);
     try {
       // Rust 端保存后会隐藏设置窗口并显示主悬浮窗
-      await invoke("save_settings", { settings: parsed, displayMode });
+      await invoke("save_settings", { settings: parsed, displayMode, autonomousMotionEnabled });
     } catch (err) {
       setErrors({ form: String(err) });
       setSubmitting(false);
@@ -217,6 +221,11 @@ export function Settings() {
           <p className="work-hours-hint">
             每日实际工作 <strong>{valid === null ? dailyHours.toFixed(1) : "--"}</strong> 小时（自动扣除午休）
           </p>
+          <div className="autonomous-setting">
+            <label><input type="checkbox" checked={autonomousMotionEnabled} onChange={event => setAutonomousMotionEnabled(event.target.checked)} />桌宠自主小动作</label>
+            <p>偶尔眨眼、打哈欠或动动耳朵，安静陪你工作。</p>
+            {reduced && <p role="status">系统已要求减少动态效果，自主小动作暂时暂停。</p>}
+          </div>
 
           <div className="preview">
             <span className="preview-title">你的打工身价</span>
@@ -232,7 +241,7 @@ export function Settings() {
             {isFirstRun ? "开始赚钱！" : "保存设置"}
           </button>
         </form>
-        <UpdatePanel unsaved={isFirstRun || !!loadError || baseline !== JSON.stringify({ settings: parsed, displayMode })} />
+        <UpdatePanel unsaved={isFirstRun || !!loadError || baseline !== JSON.stringify({ settings: parsed, displayMode, autonomousMotionEnabled })} />
         <BackupPanel />
         <ShortcutPanel />
       </div>

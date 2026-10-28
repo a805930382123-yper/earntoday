@@ -6,11 +6,12 @@ import type { PetInteraction } from "../interaction/types";
 import { useDisplay } from "../display/DisplayProvider";
 import { useState, type CSSProperties } from "react";
 import { collectionCharacter } from "../collection/themes";
+import { useAutonomousMotion } from "../autonomous/useAutonomousMotion";
 
 export type GirlMood = "working" | "lunch" | "happy" | "rest";
 
 // Poses share a fixed box and are preloaded before each time boundary.
-export function ChibiGirl({ mood, width = 361, interaction, mini = false, stage }: { mood: GirlMood; width?: number; interaction?: PetInteraction; mini?: boolean; stage?: number }) {
+export function ChibiGirl({ mood, width = 361, interaction, mini = false, stage, autonomousBlocked = false }: { mood: GirlMood; width?: number; interaction?: PetInteraction; mini?: boolean; stage?: number; autonomousBlocked?: boolean }) {
   const { theme, assetError } = useTheme();
   const { privacyMode, displayMode } = useDisplay();
   const collectionSrc = displayMode === "collection" && privacyMode === "visible" &&
@@ -22,15 +23,22 @@ export function ChibiGirl({ mood, width = 361, interaction, mini = false, stage 
   const confused = !!interaction && privacyMode === "hidden" && mood === "working";
   const showPrivacyArt = confused && !active && !!privacySrc && decodedPrivacySources.has(privacySrc);
   const placement = active && (mini ? active.config.miniPlacement ?? active.config.placement : active.config.placement);
+  const workingSrc = mood === "working" && collectionSrc ? collectionSrc : theme.characters.working;
+  const autonomous = useAutonomousMotion({ theme: theme.id, base: workingSrc, mini, working: mood === "working", privacy: privacyMode === "hidden",
+    blocked: autonomousBlocked || !!active,
+    scope: `${theme.id}:${mood}:${mini}:${privacyMode}:${displayMode}:${stage}:${active?.sequence ?? "idle"}:${autonomousBlocked}:${workingSrc}` });
   return (
     <div
-      className={`chibi-girl mood-${mood}${interaction ? " pet-interactive" : ""}${confused ? " privacy-confused" : ""}${showPrivacyArt ? " pet-has-privacy-art" : ""}${active ? ` pet-reacting reaction-${active.pose} motion-${active.config.motion}${active.src ? " pet-has-reaction" : ""}` : ""}`}
+      className={`chibi-girl mood-${mood}${autonomous.ready ? " autonomous-ready" : ""}${autonomous.src ? " autonomous-show-frame" : ""}${interaction ? " pet-interactive" : ""}${confused ? " privacy-confused" : ""}${showPrivacyArt ? " pet-has-privacy-art" : ""}${active ? ` pet-reacting reaction-${active.pose} motion-${active.config.motion}${active.src ? " pet-has-reaction" : ""}` : ""}`}
       data-reaction-pose={active?.pose}
+      data-autonomous-action={autonomous.frame?.id}
+      data-autonomous-state={autonomous.frame?.state}
       aria-hidden="true"
       style={{ width, "--privacy-tilt": theme.privacy?.tilt ?? "0.65deg" } as CSSProperties}
     >
       <div className="chibi-poses">
-        <img className="chibi-layer chibi-base chibi-awake" src={mood === "working" && collectionSrc ? collectionSrc : theme.characters.working} onError={assetError} alt="" draggable={false} />
+        <img className="chibi-layer chibi-base chibi-awake" src={workingSrc} onError={assetError} alt="" draggable={false} />
+        {autonomous.src && <img className="chibi-layer chibi-base chibi-autonomous" src={autonomous.src} onError={autonomous.failed} alt="" draggable={false} />}
         <img className="chibi-layer chibi-base chibi-sleeping" src={theme.characters.lunch} onError={assetError} alt="" draggable={false} />
         <img className="chibi-layer chibi-base chibi-after-work" src={mood === "happy" && collectionSrc ? collectionSrc : theme.characters.finished} onError={assetError} alt="" draggable={false} />
         {/* Optional visual asset: decode in advance; failure keeps the original
