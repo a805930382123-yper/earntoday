@@ -47,6 +47,10 @@ pub enum PrivacyMode { #[default] Visible, Hidden }
 #[serde(rename_all = "lowercase")]
 pub enum DisplayMode { #[default] Amount, Collection }
 
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum AutostartBehavior { #[default] Widget, Tray }
+
 #[derive(Debug, Clone, Copy, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DisplayPreferences {
@@ -80,6 +84,8 @@ pub struct AppData {
     pub shortcut_enabled: bool,
     #[serde(default = "default_autonomous_motion_enabled")]
     pub autonomous_motion_enabled: bool,
+    #[serde(default)]
+    pub autostart_behavior: AutostartBehavior,
     // Report failures to the UI; this transient diagnostic is never persisted.
     #[serde(default, skip_deserializing, skip_serializing_if = "Option::is_none")]
     pub config_error: Option<String>,
@@ -96,7 +102,7 @@ impl Default for AppData {
             settings: None, position: None, selected_theme_id: None,
             window_mode: WindowMode::Full, privacy_mode: PrivacyMode::Visible,
             display_mode: DisplayMode::Amount, full_position: None,
-            position_scale: None, full_position_scale: None, shortcut_enabled: true, autonomous_motion_enabled: true,
+            position_scale: None, full_position_scale: None, shortcut_enabled: true, autonomous_motion_enabled: true, autostart_behavior: AutostartBehavior::Widget,
             config_error: None, extra: BTreeMap::new(),
         }
     }
@@ -348,11 +354,27 @@ mod theme_tests {
     #[test]
     fn legacy_modes_default_to_full_visible() {
         let data = parse_data(&legacy().to_string());
+        assert_eq!(data.autostart_behavior, AutostartBehavior::Widget);
         assert_eq!(data.window_mode, WindowMode::Full);
         assert_eq!(data.privacy_mode, PrivacyMode::Visible);
         assert_eq!(data.display_mode, DisplayMode::Amount);
         assert!(data.config_error.is_none());
         assert!(data.shortcut_enabled);
+    }
+
+    #[test]
+    fn autostart_preference_roundtrips_without_changing_existing_settings() {
+        let mut data = parse_data(&legacy().to_string());
+        data.autostart_behavior = AutostartBehavior::Tray;
+        data.window_mode = WindowMode::Mini;
+        data.privacy_mode = PrivacyMode::Hidden;
+        data.selected_theme_id = Some("mibao".into());
+        let restored = parse_data(&serde_json::to_string(&data).unwrap());
+        assert_eq!(restored.autostart_behavior, AutostartBehavior::Tray);
+        assert_eq!(restored.window_mode, WindowMode::Mini);
+        assert_eq!(restored.privacy_mode, PrivacyMode::Hidden);
+        assert_eq!(restored.selected_theme_id.as_deref(), Some("mibao"));
+        assert_eq!(restored.settings.unwrap().monthly_salary, 8800.0);
     }
 
     #[test]

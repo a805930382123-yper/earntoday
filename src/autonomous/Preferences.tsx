@@ -16,10 +16,12 @@ export function AutonomousPreferences({ children }: { children: ReactNode }) {
       } catch { if (!disposed && request === revision) setPreference({ enabled: false, ready: false }); }
     };
     void listen("settings-updated", load).then(unlisten => { if (disposed) unlisten(); else { off = unlisten; void load(); } }).catch(() => void load());
+    let motionOff: (() => void) | undefined;
+    void listen("autonomous-updated", load).then(unlisten => { if (disposed) unlisten(); else { motionOff = unlisten; void load(); } }).catch(() => void load());
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     const change = () => setReduced(media.matches);
     media.addEventListener("change", change); change();
-    return () => { disposed = true; revision++; off?.(); media.removeEventListener("change", change); };
+    return () => { disposed = true; revision++; off?.(); motionOff?.(); media.removeEventListener("change", change); };
   }, []);
   return <Context.Provider value={{ ...preference, reduced }}>{children}</Context.Provider>;
 }

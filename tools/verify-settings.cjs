@@ -10,8 +10,9 @@ async function prepare(page) {
     const listeners = new Map();
     let id = 0;
     let settings = { monthlySalary: 8800, workdaysPerMonth: 22, workStart: '09:00', workEnd: '18:00', lunchStart: '12:00', lunchEnd: '13:00' };
+    let autostart = { enabled: false, behavior: 'widget' };
     const emit = event => { for (const listener of listeners.values()) if (listener.event === event) callbacks.get(listener.handler)?.({ event, id: listener.id, payload: null }); };
-    window.__settingsTest = { saved: null };
+    window.__settingsTest = { saved: null, autostartWrites: 0, failAutostart: false };
     window.__TAURI_EVENT_PLUGIN_INTERNALS__ = { unregisterListener: (_event, eventId) => listeners.delete(eventId) };
     window.__TAURI_INTERNALS__ = {
       currentWindow: { label: 'settings' },
@@ -21,6 +22,9 @@ async function prepare(page) {
       async invoke(cmd, args) {
         if (cmd === 'get_main_visibility') return { visible: true, revision: 0 };
         if (cmd === 'get_shortcut_status') return { enabled: true, registered: true, error: null };
+        if (cmd === 'get_autostart_status') return { ...autostart };
+        if (cmd === 'set_autostart_enabled') { if (window.__settingsTest.failAutostart) throw new Error('模拟注册失败'); autostart = { ...autostart, enabled: args.enabled }; window.__settingsTest.autostartWrites++; return { ...autostart }; }
+        if (cmd === 'set_autostart_behavior') { autostart = { ...autostart, behavior: args.behavior }; window.__settingsTest.autostartWrites++; return { ...autostart }; }
         if (cmd === 'load_data') return { settings: { ...settings }, position: null };
         if (cmd === 'check_update') return null;
         if (cmd === 'plugin:event|listen') { const eventId = ++id; listeners.set(eventId, { ...args, id: eventId }); return eventId; }
@@ -43,16 +47,17 @@ async function prepare(page) {
 }
 
 async function checkLayout(page) {
-  assert.equal(await page.locator('form input:not([type="radio"])').count(), 6);
+  assert.equal(await page.locator('form input[type="number"], form input[type="time"]').count(), 6);
   const portrait = await page.locator('.settings-portrait').boundingBox();
   assert.equal(portrait.width, 204);
   assert.equal(portrait.height, 116);
   const title = await page.locator('.settings-head h1').boundingBox();
   assert.ok(portrait.y + portrait.height <= title.y, 'Character overlaps title');
-  const save = await page.getByRole('button', { name: '保存设置' }).boundingBox();
-  assert.ok(save.y + save.height <= 600, 'Save button is clipped');
-  const form = await page.locator('form').boundingBox();
-  assert.ok(form.y + form.height <= 588, 'Main form should fit before the optional update and backup panels');
+  const saveButton = page.getByRole('button', { name: '保存设置' });
+  await saveButton.scrollIntoViewIfNeeded();
+  const save = await saveButton.boundingBox();
+  assert.ok(save.y >= 0 && save.y + save.height <= 600, 'Save button cannot be reached by scrolling');
+  await page.locator('.settings-shell').evaluate(el => { el.scrollTop = 0; });
   const theme = await page.getByRole('button', { name: '皮肤主题', exact: true }).boundingBox();
   assert.ok(theme.y + theme.height <= portrait.y, 'Theme toolbar overlaps the portrait');
   const close = await page.getByRole('button', { name: '关闭设置' }).boundingBox();
@@ -71,6 +76,20 @@ async function main() {
     await prepare(page);
     await page.screenshot({ path: 'docs/ui/settings-a-browser.png', omitBackground: true, animations: 'disabled' });
     await checkLayout(page);
+    assert.equal(await page.getByLabel('登录 Windows 后自动启动').isChecked(), false);
+    await page.getByLabel('月薪（元）').fill('9900');
+    await page.getByLabel('登录 Windows 后自动启动').check();
+    await page.getByLabel('仅驻留托盘').check();
+    assert.equal(await page.getByLabel('月薪（元）').inputValue(), '9900');
+    assert.equal(await page.evaluate(() => window.__settingsTest.saved), null);
+    assert.equal(await page.evaluate(() => window.__settingsTest.autostartWrites), 2);
+    await page.evaluate(() => { window.__settingsTest.failAutostart = true; });
+    await page.getByLabel('登录 Windows 后自动启动').click();
+    await page.getByText('模拟注册失败').waitFor();
+    assert.equal(await page.getByLabel('登录 Windows 后自动启动').isChecked(), true);
+    assert.equal(await page.getByLabel('月薪（元）').inputValue(), '9900');
+    await page.evaluate(() => { window.__settingsTest.failAutostart = false; });
+    await page.getByLabel('月薪（元）').fill('8800');
     assert.ok((await page.locator('.subtitle').textContent()).includes('按新设置重新计算'));
     assert.ok((await page.locator('.preview').textContent()).includes('400.00'));
     assert.ok((await page.locator('.preview').textContent()).includes('50.00'));

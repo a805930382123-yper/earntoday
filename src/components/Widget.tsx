@@ -109,11 +109,14 @@ const HourglassIcon = () => (
 );
 
 export function Widget() {
-  const { theme } = useTheme();
+  const { theme, ready: themeReady } = useTheme();
   const { windowMode, privacyMode, displayMode, ready, error, reload } = useDisplay();
   const hidden = privacyMode === "hidden";
   const collection = displayMode === "collection" && !hidden;
   const [settings, setSettings] = useState<SalarySettings | null>(null);
+  useEffect(() => {
+    if (settings && ready && themeReady) void invoke("startup_widget_ready").catch(console.error);
+  }, [settings, ready, themeReady]);
   const now = useVisibleClock();
   const { visible, generation } = useWindowVisibility();
   const [celebrate, setCelebrate] = useState(false);
@@ -183,13 +186,19 @@ export function Widget() {
     // lifetime also blocks the lowest-priority autonomous animation.
     void getCurrentWebviewWindow().startDragging().then(handleDragEnd).catch(console.error).finally(() => setPetBusy(false));
   };
+  const handleContextMenu = (event: MouseEvent) => {
+    event.preventDefault();
+    if ((window as unknown as Record<string, unknown>).__TAURI_INTERNALS__) {
+      void invoke("popup_widget_menu").catch(console.error);
+    }
+  };
   const autonomousBlocked = petBusy || !!deposit.pulse || activeCelebration;
 
   if (!ready) return <div className="display-loading card" role="status"><span>••••••</span><p>{error ? "显示设置读取失败，内容暂不显示。" : "正在读取显示设置…"}</p>{error && <button type="button" className="display-retry" onClick={reload}>重新读取</button>}<button type="button" className="display-retry" onClick={() => invoke("open_settings").catch(console.error)}>打开设置</button></div>;
-  if (windowMode === "mini") return <MiniWidget state={state} mood={MOOD[state]} moneyText={moneyText} status={theme.stateLabels?.[state] ?? STATUS_TEXT[state]} onDragEnd={handleDragEnd} onWindowDrag={handleWindowDrag} onActivityChange={setPetBusy} autonomousBlocked={autonomousBlocked} interaction={interaction} stage={stage} deposit={deposit} />;
+  if (windowMode === "mini") return <MiniWidget state={state} mood={MOOD[state]} moneyText={moneyText} status={theme.stateLabels?.[state] ?? STATUS_TEXT[state]} onDragEnd={handleDragEnd} onWindowDrag={handleWindowDrag} onContextMenu={handleContextMenu} onActivityChange={setPetBusy} autonomousBlocked={autonomousBlocked} interaction={interaction} stage={stage} deposit={deposit} />;
 
   return (
-    <div className={`widget-stage state-${state}${hidden ? " privacy-hidden" : ""}${collection ? " collection-mode" : ""}`} data-work-state={state} data-window-mode="full" onContextMenu={(e) => e.preventDefault()} onPointerDownCapture={interruptAutonomous} onKeyDownCapture={interruptAutonomous}>
+    <div className={`widget-stage state-${state}${hidden ? " privacy-hidden" : ""}${collection ? " collection-mode" : ""}`} data-work-state={state} data-window-mode="full" onContextMenu={handleContextMenu} onPointerDownCapture={interruptAutonomous} onKeyDownCapture={interruptAutonomous}>
       {/* 全窗口拖动层（按钮在其上方，互不干扰） */}
       <div className="drag-overlay" onMouseDown={handleWindowDrag} />
 

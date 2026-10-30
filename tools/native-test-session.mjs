@@ -3,7 +3,7 @@ import { createServer } from "node:net";
 import { spawn } from "node:child_process";
 export const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-export async function openNative(executable, launchEnv = {}) {
+export async function openNative(executable, launchEnv = {}, launchArgs = []) {
   const port = await new Promise(resolve => {
     const server = createServer().listen(0, "127.0.0.1", () => {
       const port = server.address().port; server.close(() => resolve(port));
@@ -11,7 +11,7 @@ export async function openNative(executable, launchEnv = {}) {
   });
   const appEnv = { ...process.env, WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${port} --remote-debugging-address=127.0.0.1`, ...launchEnv };
   for (const name of ["GH_TOKEN", "GITHUB_TOKEN", "TAURI_SIGNING_PRIVATE_KEY", "TAURI_SIGNING_PRIVATE_KEY_PASSWORD"]) delete appEnv[name];
-  const child = spawn(executable, [], { windowsHide: true, stdio: "ignore", env: appEnv });
+  const child = spawn(executable, launchArgs, { windowsHide: true, stdio: "ignore", env: appEnv });
   let launchError; child.on("error", error => { launchError = error; });
   let socket; let sequence = 0; const pending = new Map(); const eventHandlers = new Map();
   const stop = async () => {

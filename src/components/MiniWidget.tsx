@@ -9,7 +9,7 @@ import { InteractivePet, PetBubble } from "./InteractivePet";
 import { DisplayControls, LockIcon } from "./DisplayControls";
 import { Collection } from "./Collection";
 
-export function MiniWidget({ state, mood, moneyText, status, onDragEnd, onWindowDrag, onActivityChange, autonomousBlocked, interaction, stage, deposit }: { state: WorkState; mood: GirlMood; moneyText: string; status: string; onDragEnd: () => void; onWindowDrag: (event: MouseEvent) => void; onActivityChange: (busy: boolean) => void; autonomousBlocked: boolean; interaction: PetInteraction; stage: number; deposit: { pulse: { time: number } | null; finish: () => void } }) {
+export function MiniWidget({ state, mood, moneyText, status, onDragEnd, onWindowDrag, onContextMenu, onActivityChange, autonomousBlocked, interaction, stage, deposit }: { state: WorkState; mood: GirlMood; moneyText: string; status: string; onDragEnd: () => void; onWindowDrag: (event: MouseEvent) => void; onContextMenu: (event: MouseEvent) => void; onActivityChange: (busy: boolean) => void; autonomousBlocked: boolean; interaction: PetInteraction; stage: number; deposit: { pulse: { time: number } | null; finish: () => void } }) {
   const { theme } = useTheme();
   const { privacyMode, displayMode, error } = useDisplay();
   const hidden = privacyMode === "hidden";
@@ -20,7 +20,7 @@ export function MiniWidget({ state, mood, moneyText, status, onDragEnd, onWindow
   // Only format a real amount for a visible UI; no hidden copy in DOM or titles.
   const visibleMoney = hidden || collection ? null : Number(moneyText).toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const amountClass = visibleMoney && visibleMoney.length > 12 ? " mini-amount-long" : visibleMoney && visibleMoney.length > 8 ? " mini-amount-compact" : "";
-  return <div className={`mini-stage state-${state}${hidden ? " privacy-hidden" : ""}${collection ? " collection-mode" : ""}`} data-work-state={state} data-window-mode="mini" onContextMenu={e => e.preventDefault()} style={style} onPointerDownCapture={interruptAutonomous} onKeyDownCapture={interruptAutonomous}>
+  return <div className={`mini-stage state-${state}${hidden ? " privacy-hidden" : ""}${collection ? " collection-mode" : ""}`} data-work-state={state} data-window-mode="mini" onContextMenu={onContextMenu} style={style} onPointerDownCapture={interruptAutonomous} onKeyDownCapture={interruptAutonomous}>
     <div className="card mini-card">
       <div className="mini-theme-detail" aria-hidden="true">{theme.decorations.cardAccent ? <img src={theme.decorations.cardAccent} alt="" draggable={false} /> : <><i /><i /><i /></>}</div>
       <div className="drag-overlay" onMouseDown={onWindowDrag} />

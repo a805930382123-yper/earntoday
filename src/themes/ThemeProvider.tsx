@@ -5,6 +5,7 @@ import { DEFAULT_THEME, preloadTheme, resolveTheme, type SkinTheme } from "./cat
 
 interface ThemeContextValue {
   theme: SkinTheme;
+  ready: boolean;
   applyTheme: (id: string) => Promise<void>;
   assetError: () => void;
   notice: string | null;
@@ -13,6 +14,7 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState(DEFAULT_THEME);
+  const [ready, setReady] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [transitioning, setTransitioning] = useState(false);
   const previousId = useRef(DEFAULT_THEME.id);
@@ -34,10 +36,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       await preloadTheme(candidate);
       if (!mounted.current || request !== sequence.current) return;
       setTheme(candidate);
+      setReady(true);
       setNotice(id && candidate.id !== id ? "主题不可用，已恢复蓝色大肥鱼。" : null);
     } catch {
       if (!mounted.current || request !== sequence.current) return;
       setTheme(DEFAULT_THEME);
+      setReady(true);
       setNotice("主题素材无法加载，已恢复蓝色大肥鱼。");
     }
   }, []);
@@ -90,7 +94,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setTheme(DEFAULT_THEME);
     setNotice("主题素材无法加载，已恢复蓝色大肥鱼。");
   }, []);
-  const value = useMemo(() => ({ theme, applyTheme, assetError, notice }), [theme, applyTheme, assetError, notice]);
+  const value = useMemo(() => ({ theme, ready, applyTheme, assetError, notice }), [theme, ready, applyTheme, assetError, notice]);
   const style = { ...theme.colors, "--skin-character-filter": theme.characterFilter, "--skin-note-symbol": theme.decorations.symbolColor } as CSSProperties;
   return <ThemeContext.Provider value={value}><div className={`theme-root${transitioning ? " theme-transition" : ""}`} data-theme-id={theme.id} style={style}>{children}</div></ThemeContext.Provider>;
 }

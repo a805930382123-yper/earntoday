@@ -64,6 +64,26 @@ export function Settings() {
   const [submitting, setSubmitting] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [baseline, setBaseline] = useState("");
+  const [autostart, setAutostart] = useState<{ enabled: boolean; behavior: "widget" | "tray" } | null>(null);
+  const [autostartBusy, setAutostartBusy] = useState(false);
+  const [autostartError, setAutostartError] = useState("");
+
+  useEffect(() => {
+    invoke<{ enabled: boolean; behavior: "widget" | "tray" }>("get_autostart_status")
+      .then(setAutostart).catch(error => setAutostartError(String(error)));
+  }, []);
+
+  const changeAutostart = async (command: "set_autostart_enabled" | "set_autostart_behavior", value: boolean | "widget" | "tray") => {
+    if (autostartBusy) return;
+    setAutostartBusy(true); setAutostartError("");
+    try {
+      setAutostart(await invoke<{ enabled: boolean; behavior: "widget" | "tray" }>(command,
+        command === "set_autostart_enabled" ? { enabled: value } : { behavior: value }));
+    } catch (error) {
+      setAutostartError(String(error));
+      try { setAutostart(await invoke("get_autostart_status")); } catch { /* keep last confirmed state */ }
+    } finally { setAutostartBusy(false); }
+  };
 
   useEffect(() => {
     invoke<{ settings: SalarySettings | null; displayMode?: DisplayMode; autonomousMotionEnabled?: boolean; configError?: string }>("load_data")
@@ -244,6 +264,17 @@ export function Settings() {
         <UpdatePanel unsaved={isFirstRun || !!loadError || baseline !== JSON.stringify({ settings: parsed, displayMode, autonomousMotionEnabled })} />
         <BackupPanel />
         <ShortcutPanel />
+        <section className="autostart-panel" aria-label="启动与陪伴">
+          <strong>启动与陪伴</strong>
+          <label><input type="checkbox" checked={autostart?.enabled ?? false} disabled={!autostart || autostartBusy} onChange={event => void changeAutostart("set_autostart_enabled", event.target.checked)} />登录 Windows 后自动启动</label>
+          <fieldset disabled={!autostart?.enabled || autostartBusy}>
+            <legend>自动启动后的显示方式</legend>
+            <label><input type="radio" name="autostart-behavior" checked={autostart?.behavior !== "tray"} onChange={() => void changeAutostart("set_autostart_behavior", "widget")} />显示桌宠</label>
+            <label><input type="radio" name="autostart-behavior" checked={autostart?.behavior === "tray"} onChange={() => void changeAutostart("set_autostart_behavior", "tray")} />仅驻留托盘</label>
+          </fieldset>
+          <p>保留上次的主题、窗口大小、显示方式和隐私设置。启动选项即时生效。</p>
+          {autostartError && <p className="error" role="alert">{autostartError}</p>}
+        </section>
       </div>
     </div>
   );

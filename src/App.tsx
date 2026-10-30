@@ -6,7 +6,7 @@ import { invoke } from "./tauri";
 import { ThemeProvider } from "./themes/ThemeProvider";
 import { DisplayProvider } from "./display/DisplayProvider";
 import { UpdateProvider } from "./update/UpdateProvider";
-import { VisibilityProvider } from "./display/VisibilityProvider";
+import { VisibilityProvider, useWindowVisibility } from "./display/VisibilityProvider";
 import { AutonomousPreferences } from "./autonomous/Preferences";
 
 type TauriWindowMetadata = {
@@ -14,6 +14,25 @@ type TauriWindowMetadata = {
 };
 
 type AppView = "widget" | "settings";
+
+function QuickMenuNotice() {
+  const [error, setError] = useState("");
+  const { visible } = useWindowVisibility();
+  useEffect(() => {
+    let disposed = false;
+    let off: (() => void) | undefined;
+    void listen<string>("quick-menu-error", event => setError(event.payload)).then(unlisten => {
+      if (disposed) unlisten(); else off = unlisten;
+    }).catch(console.error);
+    return () => { disposed = true; off?.(); };
+  }, []);
+  useEffect(() => {
+    if (!visible || !error) return;
+    const timer = window.setTimeout(() => setError(""), 5000);
+    return () => window.clearTimeout(timer);
+  }, [visible, error]);
+  return visible && error ? <div className="quick-menu-error" role="alert">{error}</div> : null;
+}
 
 // 浏览器调试仍可通过 query 打开设置；生产环境只保留一个 WebView，用事件切换视图。
 const kind =
@@ -39,8 +58,8 @@ export default function App() {
 
     const detectFirstRun = async (attempt = 0) => {
       try {
-        const data = await invoke<{ settings: unknown }>("load_data");
-        if (!disposed && !data.settings) {
+        const data = await invoke<{ settings: unknown; configError?: string }>("load_data");
+        if (!disposed && (!data.settings || data.configError)) {
           setView("settings");
         }
       } catch {
@@ -62,5 +81,5 @@ export default function App() {
     };
   }, []);
 
-  return <VisibilityProvider><AutonomousPreferences><DisplayProvider><ThemeProvider><UpdateProvider showNotice={view !== "settings"}>{view === "settings" ? <Settings /> : <Widget />}</UpdateProvider></ThemeProvider></DisplayProvider></AutonomousPreferences></VisibilityProvider>;
+  return <VisibilityProvider><AutonomousPreferences><DisplayProvider><ThemeProvider><UpdateProvider showNotice={view !== "settings"}>{view === "settings" ? <Settings /> : <Widget />}</UpdateProvider></ThemeProvider></DisplayProvider></AutonomousPreferences><QuickMenuNotice /></VisibilityProvider>;
 }

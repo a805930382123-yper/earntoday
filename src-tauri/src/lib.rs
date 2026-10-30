@@ -4,12 +4,15 @@ mod config_storage;
 mod updater;
 mod visibility;
 mod shortcut;
+mod quick_menu;
 
-use config::{persist, validate_settings, AppData, AppState, DisplayMode, DisplayPreferences, PrivacyMode, SalarySettings, WindowMode};
+use config::{persist, validate_settings, AppData, AppState, AutostartBehavior, DisplayMode, DisplayPreferences, PrivacyMode, SalarySettings, WindowMode};
+use tauri_plugin_autostart::ManagerExt;
+
+const AUTOSTART_ENTRY: &str = "今天又赚了多少";
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::sync::Mutex;
 use tauri::image::Image;
-use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 
@@ -28,6 +31,7 @@ fn show_main(app: &AppHandle) {
         return;
     }
     app.emit_to("main", "show-main", ()).ok();
+    quick_menu::sync(app);
     if let Err(error) = visibility::show(app) { eprintln!("显示窗口失败：{error}"); }
 }
 
@@ -39,6 +43,7 @@ fn open_settings_window(app: &AppHandle, initializing: bool) {
             // Idempotent view synchronization also recovers a missed startup event.
             // Setting the same App view does not remount Settings or its theme page.
             app.emit_to("main", "open-settings", ()).ok();
+            quick_menu::sync(app);
             if let Err(error) = visibility::show(app) { eprintln!("恢复设置失败：{error}"); }
             return;
         }
@@ -56,6 +61,7 @@ fn open_settings_window(app: &AppHandle, initializing: bool) {
         let _ = win.set_size(tauri::LogicalSize::new(400.0, 600.0));
         let _ = win.center();
         app.emit_to("main", "open-settings", ()).ok();
+        quick_menu::sync(app);
         if let Err(error) = visibility::show(app) { eprintln!("显示设置失败：{error}"); }
     }
 }
@@ -65,10 +71,10 @@ fn open_settings_window(app: &AppHandle, initializing: bool) {
 // ---------------------------------------------------------------------------
 
 fn create_tray(app: &AppHandle) -> tauri::Result<()> {
-    let show = MenuItem::with_id(app, "show", "显示 / 恢复窗口", true, None::<&str>)?;
-    let settings = MenuItem::with_id(app, "settings", "设置", true, None::<&str>)?;
-    let quit = MenuItem::with_id(app, "quit", "退出程序", true, None::<&str>)?;
-    let menu = Menu::with_items(app, &[&show, &settings, &quit])?;
+    let menus = quick_menu::QuickMenus::new(app)?;
+    let menu = menus.tray().clone();
+    app.manage(menus);
+    quick_menu::sync(app);
 
     let icon = Image::from_bytes(include_bytes!("../icons/32x32.png"))?;
     TrayIconBuilder::with_id("main-tray")
@@ -76,12 +82,6 @@ fn create_tray(app: &AppHandle) -> tauri::Result<()> {
         .tooltip("今天又赚了多少")
         .menu(&menu)
         .show_menu_on_left_click(false)
-        .on_menu_event(|app, event| match event.id().as_ref() {
-            "show" => { if let Err(error) = visibility::show(app) { eprintln!("恢复窗口失败：{error}"); } },
-            "settings" => open_settings_window(app, false),
-            "quit" => app.exit(0),
-            _ => {}
-        })
         .on_tray_icon_event(|tray, event| {
             if let TrayIconEvent::Click {
                 button: MouseButton::Left,
@@ -96,6 +96,61 @@ fn create_tray(app: &AppHandle) -> tauri::Result<()> {
     Ok(())
 }
 
+fn handle_menu_event(app: &AppHandle, id: &str) -> Result<(), String> {
+    let state = app.state::<AppState>();
+    let editing = *state.settings_open.lock().map_err(|e| e.to_string())?;
+    let guarded = id.starts_with("display_") || id.starts_with("size_") || id.starts_with("theme_") || id == "motion";
+    if guarded && editing { return Err("请先返回桌宠再切换此选项".into()); }
+    match id {
+        "display_amount" | "display_collection" => {
+            let mode = if id == "display_amount" { DisplayMode::Amount } else { DisplayMode::Collection };
+            let mut data = state.data.lock().map_err(|e| e.to_string())?;
+            if data.display_mode != mode {
+                let mut updated = data.clone(); updated.display_mode = mode;
+                persist(&updated)?; *data = updated;
+                drop(data); emit_display(app);
+            }
+        }
+        "size_full" | "size_mini" => {
+            let mode = if id == "size_full" { WindowMode::Full } else { WindowMode::Mini };
+            set_window_mode(app.clone(), mode)?;
+        }
+        "theme_blue-whale-girl" | "theme_mibao" => {
+            let theme = id.strip_prefix("theme_").unwrap();
+            let current = state.data.lock().map_err(|e| e.to_string())?.selected_theme_id.clone();
+            if current.as_deref().unwrap_or("blue-whale-girl") != theme { save_theme(app.clone(), theme.into())?; }
+        }
+        "privacy" => {
+            let current = state.data.lock().map_err(|e| e.to_string())?.privacy_mode;
+            set_privacy_mode(app.clone(), if current == PrivacyMode::Hidden { PrivacyMode::Visible } else { PrivacyMode::Hidden })?;
+        }
+        "motion" => {
+            let mut data = state.data.lock().map_err(|e| e.to_string())?;
+            let mut updated = data.clone(); updated.autonomous_motion_enabled = !data.autonomous_motion_enabled;
+            persist(&updated)?; *data = updated;
+            app.emit("autonomous-updated", ()).ok();
+        }
+        "hide" => visibility::hide(app)?,
+        "toggle_visibility" => {
+            let win = app.get_webview_window("main").ok_or("主窗口不可用")?;
+            if win.is_visible().map_err(|e| e.to_string())? && !win.is_minimized().map_err(|e| e.to_string())? { visibility::hide(app)?; }
+            else { visibility::show(app)?; }
+        }
+        "settings" => open_settings_window(app, false),
+        "quit" => app.exit(0),
+        _ => {}
+    }
+    Ok(())
+}
+
+#[tauri::command]
+fn popup_widget_menu(app: AppHandle) -> Result<(), String> {
+    if *app.state::<AppState>().settings_open.lock().map_err(|e| e.to_string())? { return Ok(()); }
+    let menus = app.state::<quick_menu::QuickMenus>();
+    menus.sync(&app).map_err(|e| e.to_string())?;
+    menus.popup_widget(&app).map_err(|e| e.to_string())
+}
+
 // ---------------------------------------------------------------------------
 // 前端命令
 // ---------------------------------------------------------------------------
@@ -103,7 +158,12 @@ fn create_tray(app: &AppHandle) -> tauri::Result<()> {
 #[tauri::command]
 fn load_data(app: AppHandle) -> AppData {
     let state = app.state::<AppState>();
-    let data = state.data.lock().expect("app data poisoned").clone();
+    let mut data = state.data.lock().expect("app data poisoned").clone();
+    if data.config_error.is_none() {
+        if let Some(settings) = &data.settings {
+            if let Err(error) = validate_settings(settings) { data.config_error = Some(error); }
+        }
+    }
     data
 }
 
@@ -145,6 +205,7 @@ fn save_theme(app: AppHandle, selected_theme_id: String) -> Result<(), String> {
     }
     // No resize, focus, navigation or salary update on a visual-only change.
     app.emit("theme-updated", &selected_theme_id).ok();
+    quick_menu::sync(&app);
     Ok(())
 }
 
@@ -166,6 +227,7 @@ fn save_position(app: AppHandle, x: f64, y: f64) -> Result<(), String> {
 fn emit_display(app: &AppHandle) {
     let display = app.state::<AppState>().data.lock().expect("app data poisoned").display();
     app.emit("display-updated", display).ok();
+    quick_menu::sync(&app);
 }
 
 #[tauri::command]
@@ -181,6 +243,7 @@ fn set_privacy_mode(app: AppHandle, privacy_mode: PrivacyMode) -> Result<Display
         data.display()
     };
     app.emit("display-updated", display).ok();
+    quick_menu::sync(&app);
     Ok(display)
 }
 
@@ -217,6 +280,7 @@ fn set_window_mode(app: AppHandle, window_mode: WindowMode) -> Result<DisplayPre
     }
     let display = state.data.lock().map_err(|e| e.to_string())?.display();
     app.emit("display-updated", display).ok();
+    quick_menu::sync(&app);
     Ok(display)
 }
 
@@ -235,28 +299,118 @@ fn hide_settings(app: AppHandle) {
     show_main(&app);
 }
 
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct AutostartStatus { enabled: bool, behavior: AutostartBehavior }
+
+#[tauri::command]
+fn get_autostart_status(app: AppHandle) -> Result<AutostartStatus, String> {
+    let enabled = app.autolaunch().is_enabled().map_err(|e| e.to_string())?;
+    let behavior = app.state::<AppState>().data.lock().map_err(|e| e.to_string())?.autostart_behavior;
+    Ok(AutostartStatus { enabled, behavior })
+}
+
+#[tauri::command]
+fn set_autostart_behavior(app: AppHandle, behavior: AutostartBehavior) -> Result<AutostartStatus, String> {
+    let state = app.state::<AppState>();
+    let mut data = state.data.lock().map_err(|e| e.to_string())?;
+    if let Some(error) = &data.config_error { return Err(error.clone()); }
+    let mut updated = data.clone();
+    updated.autostart_behavior = behavior;
+    persist(&updated)?;
+    *data = updated;
+    drop(data);
+    get_autostart_status(app)
+}
+
+#[tauri::command]
+fn set_autostart_enabled(app: AppHandle, enabled: bool) -> Result<AutostartStatus, String> {
+    if enabled {
+        // Only the executable named by this user's installed application may register.
+        let exe = std::env::current_exe().map_err(|e| e.to_string())?;
+        let installed = winreg::RegKey::predef(winreg::enums::HKEY_CURRENT_USER)
+            .open_subkey("Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\今天又赚了多少")
+            .ok()
+            .and_then(|key| key.get_value::<String, _>("DisplayIcon").ok())
+            .map(|path| std::path::PathBuf::from(path.trim_matches('"')));
+        if cfg!(debug_assertions) || installed.as_ref().and_then(|path| path.canonicalize().ok()) != exe.canonicalize().ok() {
+            return Err("请安装候选版本后再开启开机启动".into());
+        }
+        app.autolaunch().enable().map_err(|e| e.to_string())?;
+        // auto-launch 0.6 writes the raw path. Quote this same plugin entry for
+        // installed paths containing spaces, without adding another startup method.
+        let quoted = format!("\"{}\" --autostart", exe.display());
+        let write_result = winreg::RegKey::predef(winreg::enums::HKEY_CURRENT_USER)
+            .open_subkey_with_flags("Software\\Microsoft\\Windows\\CurrentVersion\\Run", winreg::enums::KEY_SET_VALUE)
+            .and_then(|key| key.set_value(AUTOSTART_ENTRY, &quoted));
+        if let Err(error) = write_result {
+            let _ = app.autolaunch().disable();
+            return Err(format!("开机启动注册未完成：{error}"));
+        }
+    } else {
+        app.autolaunch().disable().map_err(|e| e.to_string())?;
+    }
+    get_autostart_status(app)
+}
+
+#[tauri::command]
+fn startup_widget_ready(app: AppHandle) -> Result<(), String> {
+    let state = app.state::<StartupState>();
+    if state.quiet_widget && !state.ready.swap(true, std::sync::atomic::Ordering::AcqRel) {
+        visibility::show_quietly(&app)?;
+    }
+    Ok(())
+}
+
+struct StartupState { quiet_widget: bool, ready: std::sync::atomic::AtomicBool }
+
 // ---------------------------------------------------------------------------
 // 应用入口
 // ---------------------------------------------------------------------------
 
 pub fn run() {
+    let autostart_arg = std::env::args_os().any(|arg| arg == "--autostart");
+    let update_restart = updater::consume_update_restart();
+    let autostart = autostart_arg && !update_restart;
     let data = config::load_data();
+    let quiet_widget = autostart && data.autostart_behavior == AutostartBehavior::Widget;
     let shortcut_enabled = data.shortcut_enabled;
-    let settings_valid = data
+    let settings_valid = data.config_error.is_none() && data
         .settings
         .as_ref()
         .map(|s| validate_settings(s).is_ok())
         .unwrap_or(false);
 
-    tauri::Builder::default()
+    let builder = tauri::Builder::default();
+    // The isolated acceptance binary deliberately permits a second instance
+    // to exercise global shortcut registration conflicts.
+    #[cfg(not(feature = "isolated-test"))]
+    let builder = builder.plugin(tauri_plugin_single_instance::init(|app, args, _| {
+        if args.iter().any(|arg| arg == "--autostart") { return; }
+        let handle = app.clone();
+        if let Err(error) = app.run_on_main_thread(move || {
+            if let Err(error) = visibility::show(&handle) { eprintln!("再次启动时恢复窗口失败：{error}"); }
+        }) { eprintln!("再次启动时恢复窗口失败：{error}"); }
+    }));
+
+    builder
+        .plugin(tauri_plugin_autostart::Builder::new().app_name(AUTOSTART_ENTRY).arg("--autostart").build())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(updater::UpdateState::default())
         .manage(visibility::VisibilityState::default())
+        .manage(StartupState { quiet_widget, ready: std::sync::atomic::AtomicBool::new(false) })
         .manage(shortcut::ShortcutRuntime::default())
         .manage(AppState {
             data: Mutex::new(data),
             // Ignore queued startup/centering moves until the first view is placed.
             settings_open: Mutex::new(true),
+        })
+        .on_menu_event(|app, event| {
+            if let Err(error) = handle_menu_event(app, event.id().as_ref()) {
+                eprintln!("快捷菜单操作失败：{error}");
+                app.emit_to("main", "quick-menu-error", &error).ok();
+            }
+            quick_menu::sync(app);
         })
         .invoke_handler(tauri::generate_handler![
             load_data,
@@ -268,6 +422,11 @@ pub fn run() {
             open_settings,
             hide_main,
             hide_settings,
+            popup_widget_menu,
+            get_autostart_status,
+            set_autostart_behavior,
+            set_autostart_enabled,
+            startup_widget_ready,
             visibility::get_main_visibility,
             visibility::toggle_main_visibility,
             shortcut::get_shortcut_status,
@@ -303,6 +462,7 @@ pub fn run() {
                 .title("今天又赚了多少")
                 .inner_size(260.0, 276.0)
                 .visible(false)
+                .focused(!autostart)
                 .decorations(false)
                 .transparent(true)
                 .always_on_top(true)
@@ -318,11 +478,12 @@ pub fn run() {
             shortcut::initialize(&handle, shortcut_enabled);
             if settings_valid {
                 restore_main_window(&handle, false)?;
-                visibility::show(&handle).map_err(std::io::Error::other)?;
+                if !autostart { visibility::show(&handle).map_err(std::io::Error::other)?; }
             } else {
-                // 首次启动或已有配置无效：直接引导设置
-                open_settings_window(&handle, true);
+                // Automatic login remains in the tray until the user explicitly opens it.
+                if !autostart { open_settings_window(&handle, true); }
             }
+            quick_menu::sync(&handle);
             Ok(())
         })
         .on_window_event(|window, event| {

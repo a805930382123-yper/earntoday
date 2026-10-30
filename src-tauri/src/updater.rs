@@ -13,6 +13,20 @@ use std::{
 use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_updater::{Update, UpdaterExt};
 
+fn restart_marker_path() -> std::path::PathBuf {
+    config::config_path().with_file_name("update-restart.marker")
+}
+
+pub fn consume_update_restart() -> bool {
+    let path = restart_marker_path();
+    let recent = std::fs::metadata(&path).ok()
+        .and_then(|entry| entry.modified().ok())
+        .and_then(|time| time.elapsed().ok())
+        .is_some_and(|elapsed| elapsed < Duration::from_secs(30 * 60));
+    let _ = std::fs::remove_file(path);
+    recent
+}
+
 #[derive(Default)]
 pub struct UpdateState {
     pending: Mutex<Option<Update>>,
@@ -142,9 +156,16 @@ pub async fn install_update(app: AppHandle) -> Result<(), String> {
     .ok();
     // Official plugin verifies the signature again, starts NSIS and exits Windows app;
     // NSIS launches the new version on successful completion (plugin default).
-    update
+    let from_autostart = std::env::args_os().any(|arg| arg == "--autostart");
+    if from_autostart {
+        std::fs::write(restart_marker_path(), b"restart")
+            .map_err(|e| format!("无法准备更新后重启：{e}"))?;
+    }
+    let result = update
         .install(bytes)
-        .map_err(|_| "更新安装未完成，请重试；本机配置及备份已保留".to_string())
+        .map_err(|_| "更新安装未完成，请重试；本机配置及备份已保留".to_string());
+    if result.is_err() && from_autostart { let _ = std::fs::remove_file(restart_marker_path()); }
+    result
 }
 
 #[tauri::command]

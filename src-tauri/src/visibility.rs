@@ -21,7 +21,10 @@ fn publish(app: &AppHandle, visible: bool) -> Result<Snapshot, String> {
         snapshot.revision += 1;
         app.emit_to("main", "main-visibility", *snapshot).map_err(|e| e.to_string())?;
     }
-    Ok(*snapshot)
+    let result = *snapshot;
+    drop(snapshot);
+    crate::quick_menu::sync(app);
+    Ok(result)
 }
 
 #[tauri::command]
@@ -41,6 +44,13 @@ pub fn show(app: &AppHandle) -> Result<(), String> {
     win.show().map_err(|e| e.to_string())?;
     refresh(app)?;
     win.set_focus().map_err(|e| e.to_string())
+}
+
+pub fn show_quietly(app: &AppHandle) -> Result<(), String> {
+    let win = app.get_webview_window("main").ok_or("主窗口不可用")?;
+    win.show().map_err(|e| e.to_string())?;
+    refresh(app)?;
+    Ok(())
 }
 
 pub fn hide(app: &AppHandle) -> Result<(), String> {

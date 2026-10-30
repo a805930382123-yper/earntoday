@@ -16,6 +16,7 @@ async function main() {
         await page.waitForLoadState('networkidle');
         // Resource completion precedes optional decoding; allow the local decode.
         await page.waitForTimeout(200);
+        const initialListenerCount = await page.evaluate(() => window.__themeTest.listenerCount());
         const original = await page.evaluate(() => structuredClone(window.__themeTest.data));
         const target = () => page.getByRole('button', { name: /桌宠，点击互动/ });
         const reaction = () => page.locator('.chibi-reaction');
@@ -112,7 +113,7 @@ async function main() {
         await page.evaluate(id => { window.__themeTest.data.selectedThemeId = id; window.__themeTest.emit('theme-updated', id); }, other);
         await page.waitForSelector(`[data-theme-id="${other}"]`); assert.equal(await reaction().count(), 0);
         await page.clock.runFor(2000); assert.equal(await reaction().count(), 0);
-        assert.equal(await page.evaluate(() => window.__themeTest.listenerCount()), 6);
+        assert.equal(await page.evaluate(() => window.__themeTest.listenerCount()), initialListenerCount);
         const stored = await page.evaluate(() => structuredClone(window.__themeTest.data));
         assert.deepEqual(stored.settings, original.settings);
         await setTime('08:00', 'before'); assert.equal(await target().count(), 0);
