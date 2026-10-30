@@ -6,7 +6,7 @@
 
 **[下载最新版 Windows 安装包](https://github.com/a805930382123-yper/earntoday/releases/latest)**
 
-当前正式版：[v0.3.2](https://github.com/a805930382123-yper/earntoday/releases/tag/v0.3.2)。新增可关闭的桌宠自主小动作：眨眼、哈欠、咪宝动耳与尾尖轻摆。已安装正式 v0.3.0/v0.3.1 的用户可在设置中“检查更新”。
+当前正式版：[v0.3.3](https://github.com/a805930382123-yper/earntoday/releases/tag/v0.3.3)。加入用户主动开启的开机陪伴、桌宠右键与托盘快捷菜单，并优化重复启动与窗口恢复。已安装具备更新器的正式版用户可在设置中“检查更新”。
 
 在发布页面下载 `EarnToday_版本号_x64-setup.exe`，双击并按提示安装，然后从开始菜单打开「今天又赚了多少」。无需安装 Node.js、Rust 或开发工具，也不需要保留项目文件夹。
 

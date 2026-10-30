@@ -1,10 +1,22 @@
 # 自动更新与旧版配置保护交付记录
 
-状态（2026-10-28）：**[v0.3.2 已正式发布并设为 Latest](https://github.com/a805930382123-yper/earntoday/releases/tag/v0.3.2)**。用户明确授权通过检查更新分发后，复用已验收的生产签名候选，未在发布时重新构建。[正式发布与公开下载复核 40625174565](https://github.com/a805930382123-yper/earntoday/actions/runs/40625174565) 成功，五个公开资产和 Latest 元数据均与候选字节一致，既有生产密钥继续沿用。已独立回读应用实际使用的 `/releases/latest/download/latest.json`，返回版本 0.3.2。构建与单元测试不能代替下文的实际升级记录。
+状态（2026-10-30）：**[v0.3.3 已正式发布并设为 Latest](https://github.com/a805930382123-yper/earntoday/releases/tag/v0.3.3)**。[正式晋级与公开下载复核 41036393385](https://github.com/a805930382123-yper/earntoday/actions/runs/41036393385) 成功，五个公开资产与签名候选字节一致。已独立回读应用实际使用的 `/releases/latest/download/latest.json`，返回版本 0.3.3 和正确的 Windows x64 下载地址。构建与单元测试不能代替下文的实际升级记录。
 
-**[下载正式 Windows 安装包](https://github.com/a805930382123-yper/earntoday/releases/download/v0.3.2/EarnToday_0.3.2_x64-setup.exe)**。大小 44,301,316 bytes；SHA-256：`a2c66c18fcc7e73c299c783da0147e9c4a6c3afeef93a64463d20d823829971b`。
+**[下载正式 Windows 安装包](https://github.com/a805930382123-yper/earntoday/releases/download/v0.3.3/EarnToday_0.3.3_x64-setup.exe)**。大小 44,376,364 bytes；SHA-256：`ed4ce12886d5d83cd11154b99c34ac87396f84b97463c52397733032f991dc64`。
 
 ## 1. 旧版审计
+
+### 0.3.3 开机陪伴与快捷菜单发布（2026-10-30）
+
+固定源码提交为 `908f184fe46fe14b0feb8c2cb5b250dad08a8815`；Release ID `428867224`，标签 `v0.3.3` 指向同一提交，非草稿、非预发布，已设为 Latest。版本同步到 npm、Cargo、两份锁文件与 Tauri 配置；沿用已有公钥、生产签名 Secrets、应用身份、配置目录与当前用户安装范围。未提交本地安装包、安装目录或界面截图。
+
+| 项目 | 结果 |
+| --- | --- |
+| 生产签名候选 | [41034678688](https://github.com/a805930382123-yper/earntoday/actions/runs/41034678688) success；46 项前端测试、生产构建、21 项 Rust 测试、签名及可信版本检查、干净 Windows runner 上 v0.2.0 → 0.3.3 覆盖安装与配置保留通过；候选 artifact ID `12968356635`，ZIP SHA-256 `38c7ab657df1f79b9cccced581ba9bece3f2878c20257029a0367794590ec19f` |
+| 隔离应用内更新 | [41034700827](https://github.com/a805930382123-yper/earntoday/actions/runs/41034700827) success；0.3.3 → `0.3.4-updater-test.41034700827.1` 真实 UI 下载、安装、自动重启、配置及 checkpoint 保留；十项正常与异常场景通过，正式 Latest 未被测试运行改变 |
+| 正式晋级 | [41036393385](https://github.com/a805930382123-yper/earntoday/actions/runs/41036393385) success；复用候选原字节，核对签名、版本、五个附件及公开下载路径，发布为 stable Latest；正式安装包 SHA-256 与候选相同 |
+
+第四阶段用户曾对相同功能源码的本地 0.3.2 未签名包完成安装、实际注销重登两种自启动方式和旧版直接覆盖，均反馈正常；该实测不等同于 v0.3.3 签名包的人工登录验收。发布后已独立确认公开 Latest 元数据版本、平台、下载 URL 与签名字段；**尚未在隔离 Windows 环境从现有正式 v0.3.2 客户端通过公开 Latest 实际安装到 v0.3.3**。现有自动化验证了签名升级机制和正式包的覆盖安装，不能把公开元数据可访问表述为这条人工路径已通过。
 
 ### 0.3.2 验收与正式发布（2026-10-28）
 
@@ -60,7 +72,7 @@
 - 设置实际采用 **Rust JSON 文件**，不使用 localStorage / Tauri Store。WebView2 缓存不承载工资设置，无需迁移其数据目录。
 - 原工作流在 main/工作流文件推送时可能直接发布。已去掉 push 触发，仅允许人工运行，不会因为推送本次代码而向试用用户发新版。
 
-首次自动更新交付的候选号为 `0.3.0`，当时 package.json、package-lock.json、Cargo.toml、Cargo.lock、tauri.conf.json 同步；当前正式版为 `0.3.1`。
+首次自动更新交付的候选号为 `0.3.0`，当时 package.json、package-lock.json、Cargo.toml、Cargo.lock、tauri.conf.json 同步；该节记录形成时的正式版为 `0.3.1`。
 
 ## 2. 用户配置位置与完整字段
 
@@ -197,7 +209,7 @@ C 的可控错误使用 `updater-https-fixture.mjs`：仅测试应用的子进�
 
 ## 8. 首次向旧用户过渡的方法
 
-**本次 A/B/C 数据保护与升级验收已通过，可按以下方法过渡：** 让旧用户从托盘退出旧应用，先把 `%APPDATA%\earn-today` 复制到自己本机的备份目录；记录非默认设置。下载上方正式 `EarnToday_0.3.0_x64-setup.exe`，使用同一个 Windows 用户直接覆盖原安装，沿用原安装目录，勿先卸载/清理用户数据。启动后核对工资、时段、主题、显示/迷你/隐私及工作日；确认设置页可以检查更新和创建备份。以后通过应用内更新。出现配置问题时先保留原文件，在设置 → 本机配置备份 → 查看备份中选择有效备份，再点击“恢复所选备份”“确认恢复所选设置”；不要删除 config.json。
+**本次 A/B/C 数据保护与升级验收已通过，可按以下方法过渡：** 让旧用户从托盘退出旧应用，先把 `%APPDATA%\earn-today` 复制到自己本机的备份目录；记录非默认设置。下载本页上方最新版正式安装包，使用同一个 Windows 用户直接覆盖原安装，沿用原安装目录，勿先卸载/清理用户数据。启动后核对工资、时段、主题、显示/迷你/隐私及工作日；确认设置页可以检查更新和创建备份。以后通过应用内更新。出现配置问题时先保留原文件，在设置 → 本机配置备份 → 查看备份中选择有效备份，再点击“恢复所选备份”“确认恢复所选设置”；不要删除 config.json。
 
 ## 9. 当前验证边界
 
